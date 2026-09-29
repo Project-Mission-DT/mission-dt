@@ -32,16 +32,26 @@ RES = str(ROOT / "results")
 
 
 class LoggingDT(MissionDT):
-    """Logs the state estimate of the mission twin once per frame (formal core hook)."""
+    """Logs the state estimate of the mission twin once per frame (formal core hook).
+    Also logs the stale streak m and the last received state (hold estimate)."""
     def __init__(self, *a, **k):
         super().__init__(*a, on_frame=self._log, **k)
-        self.state_log = []   # (t, aid, lat, lon, yaw, stale)
+        self.state_log = []   # (t, aid, lat, lon, yaw, stale, m, hold_lat, hold_lon)
+        self._streak, self._hold = {}, {}
 
     def _log(self, M):
         now = time.time()
         for aid, B in M.B.items():
-            if B.seeded:
-                self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale))
+            if not B.seeded:
+                continue
+            if B.stale:
+                self._streak[aid] = self._streak.get(aid, 0) + 1
+            else:
+                self._streak[aid] = 0
+                self._hold[aid] = (B.p[0], B.p[1])
+            h = self._hold.get(aid, (B.p[0], B.p[1]))
+            self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale,
+                                   self._streak[aid], h[0], h[1]))
 
 
 def wrap_deg(a):
@@ -73,8 +83,9 @@ def run_e4(loss, n_agents=10, duration=30.0):
 
     truth = {a.aid: a.truth_log for a in agents}
     times = {aid: [r[0] for r in log] for aid, log in truth.items()}
-    pos_err, hdg_err, stale_err = [], [], []
-    for (t, aid, lat, lon, yaw, stale) in dt.state_log:
+    pos_err, hdg_err, stale_err, rows = [], [], [], []
+    dom = {a.aid: a.domain for a in agents}
+    for (t, aid, lat, lon, yaw, stale, m, hlat, hlon) in dt.state_log:
         log, ts = truth[aid], times[aid]
         i = bisect.bisect_left(ts, t)
         if i == 0 or i >= len(ts):
@@ -91,6 +102,9 @@ def run_e4(loss, n_agents=10, duration=30.0):
         hdg_err.append(he)
         if stale:
             stale_err.append(pe)
+        hy = (hlat - tlat) * 111_320.0
+        hx = (hlon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
+        rows.append((dom[aid], m, pe, math.hypot(hx, hy)))
     frames_agents = len(dt.state_log)
     lost = sum(a.lost_msgs for a in agents)
     sent = sum(a.msgs_out for a in agents)
@@ -104,6 +118,7 @@ def run_e4(loss, n_agents=10, duration=30.0):
         "pos_max_stale_m": max(stale_err) if stale_err else 0.0,
         "hdg_rmse_deg": math.sqrt(st.mean(e * e for e in hdg_err)),
         "hdg_p99_deg": pctl(hdg_err, 99),
+        "rows_dom_m_err_hold": rows,
     }
 
 

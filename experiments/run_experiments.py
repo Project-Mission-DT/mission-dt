@@ -30,7 +30,8 @@ def pctl(v, p):
 
 def run_trial(n_agents, duration=30.0, regulator=True, mix_aerial=True):
     gc.collect()
-    dt = MissionDT()
+    seeded = [0]
+    dt = MissionDT(on_frame=lambda M: seeded.__setitem__(0, seeded[0] + sum(1 for B in M.B.values() if B.seeded)))
     agents, goals = [], {}
     for i in range(n_agents):
         dom = "aerial" if (mix_aerial and i % 2) else "surface"
@@ -50,6 +51,8 @@ def run_trial(n_agents, duration=30.0, regulator=True, mix_aerial=True):
     lat_a = [x for a in agents for x in a.act_latencies]
     total_bytes = sum(a.bytes_out for a in agents)
     total_msgs = sum(a.msgs_out for a in agents)
+    # rates over the publication window, not over the core run time
+    window = max(a.t_last_pub for a in agents) - min(a.t_first_pub for a in agents)
     return {
         "n_agents": n_agents, "duration_s": duration, "regulator": regulator,
         "frames": dt.frames, "overruns": dt.frame_overruns,
@@ -63,10 +66,14 @@ def run_trial(n_agents, duration=30.0, regulator=True, mix_aerial=True):
                              "max": max(lat_t) * 1e3, "n": len(lat_t)},
         "actuation_lat_ms": {"mean": st.mean(lat_a) * 1e3,
                              "p99": pctl(lat_a, 99) * 1e3, "n": len(lat_a)},
-        "uplink_Bps": total_bytes / duration,
-        "uplink_msgs_s": total_msgs / duration,
+        "pub_window_s": window,
+        "uplink_Bps": total_bytes / window,
+        "uplink_msgs_s": total_msgs / window,
+        "seeded_agent_frames": seeded[0],
+        "stale_pct": 100.0 * dt.stale_updates / max(1, seeded[0]),
         "raw_frame_compute_ms": [x * 1e3 for x in dt.frame_compute],
-        "raw_telemetry_lat_ms": [x * 1e3 for x in lat_t[:20000]],
+        "raw_telemetry_lat_ms": [x * 1e3 for x in lat_t],
+        "raw_actuation_lat_ms": [x * 1e3 for x in lat_a],
     }
 
 

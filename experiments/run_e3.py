@@ -68,7 +68,8 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
                          "p95": pctl(lat_sw, 95) * 1e3,
                          "p99": pctl(lat_sw, 99) * 1e3,
                          "max": max(lat_sw) * 1e3, "n": len(lat_sw)},
-        "raw_swarm_lat_ms": [x * 1e3 for x in lat_sw[:50000]],
+        "raw_swarm_lat_ms": [x * 1e3 for x in lat_sw],
+        "raw_frame_compute_ms": [x * 1e3 for x in dt.frame_compute],
     }
 
 

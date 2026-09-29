@@ -44,6 +44,8 @@ class VirtualAgent(threading.Thread):
         self.seq = 0
         self.bytes_out = 0
         self.msgs_out = 0
+        self.t_first_pub = None   # publication window (rates use it)
+        self.t_last_pub = None
         self.act_latencies = []   # DT actuation publish -> agent apply (s)
         self.swarm_latencies = []  # neighbor telemetry pub -> corrective actuation here (s)
 
@@ -110,6 +112,10 @@ class VirtualAgent(threading.Thread):
                                      p, qos=0)
                     self.bytes_out += len(p)
                     self.msgs_out += 1
+                    now_pub = time.time()
+                    if self.t_first_pub is None:
+                        self.t_first_pub = now_pub
+                    self.t_last_pub = now_pub
             tick += 1
             t_next += period
             s = t_next - time.monotonic()

@@ -26,7 +26,7 @@ ax.plot(N,[r["telemetry_lat_ms"]["p99"] for r in e1],"s--",ms=3.5,label="telemet
 ax.set_xlabel("Fleet size (number of hybrid agents)")
 ax.set_ylabel("MQTT latency (ms)")
 ax2=ax.twinx();ax2.grid(False)
-stale=[100.0*r["stale_updates"]/(r["frames"]*r["n_agents"]) for r in e1]
+stale=[r.get("stale_pct",100.0*r["stale_updates"]/(r["frames"]*r["n_agents"])) for r in e1]
 ax2.plot(N,stale,"^:",ms=3.5,color="#8a1f1f",label="stale updates")
 ax2.set_ylabel("Stale state updates (\\%)",color="#8a1f1f")
 ax2.tick_params(axis="y",labelcolor="#8a1f1f")
