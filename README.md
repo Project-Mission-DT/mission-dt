@@ -169,12 +169,15 @@ A broker that is already running keeps its own configuration.
 | Repetition statistics (`summary.*`) | Mean and sample standard deviation over the per-run values of each metric; *pooled* columns use all raw samples of all repetitions, with nearest-rank percentiles. |
 
 Results of the revised paper (`results/rep1/` to `results/rep5/`, five runs,
-Linux VM, Xeon 2.10 GHz, broker and experiments on core 0): <TBD overruns>
-frame overruns up to 100 agents (longest frame <TBD> ms); regulators cut uplink
-<TBD>x and redundant samples <TBD>x; corrective commands reach neighbours with a
-median of <TBD> ms and at most <TBD> ms; position RMSE <TBD> m with the regulator
-and <TBD> m without it up to 10% injected loss; the Mission-DT process uses
-<TBD>% of one core and <TBD> MiB at 100 agents.
+Linux VM, Xeon 2.10 GHz, broker and experiments on core 0; x ± y is the mean ±
+sample standard deviation over the five runs, *pooled* uses all samples of the
+five runs; `results/summary.md` holds all values): 0 frame overruns up to 100
+agents (longest frame 46.22 ms, pooled); regulators cut uplink 5.99 ± 0.00x and
+redundant samples 131.92 ± 5.06x; corrective commands reach neighbours with a
+median of 61.2 ± 2.7 to 65.3 ± 0.6 ms and at most 287.6 ms (pooled); position
+RMSE 0.617 ± 0.001 to 0.632 ± 0.011 m with the regulator and 0.182 ± 0.003 to
+0.195 ± 0.006 m without it up to 10% injected loss; the Mission-DT process uses
+12.1 ± 0.2% of one core and 24.8 ± 0.0 MiB at 100 agents.
 `results/README.md` describes each results directory, including a Windows run
 of the original core with the default Mosquitto configuration (Nagle's
 algorithm enabled) in `results/windows_original_code/`.

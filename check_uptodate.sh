@@ -10,7 +10,7 @@ chk () {  # chk <file> <marker> <description>
   fi
 }
 echo "== Mission-DT up-to-date check =="
-chk mission_dt/core.py        "_separation"          "swarm separation rule (E3)"
+chk mission_dt/model.py       "P.separation"         "swarm separation rule (E3)"
 chk mission_dt/core.py        "avoid_events"         "E3 metrics"
 chk mission_dt/agents.py      "retain=True"          "retained MQTT registration"
 chk mission_dt/agents.py      "swarm_latencies"      "E3 propagation measurement"
@@ -21,7 +21,7 @@ chk experiments/run_experiments.py "pathlib"         "relative paths fix"
 chk viz/mission_viz.py        "SAFE_M"               "safety spheres (viz v3)"
 chk viz/mission_viz.py        "class Recorder"       "video recording (viz v3)"
 chk viz/mission_viz.py        "build_aerial"         "quadcopter/vessel models"
-chk results/e3_swarm.json     "swarm_lat_ms"         "E3 canonical results"
+chk results/rep1/e3_swarm.json "swarm_lat_ms"        "E3 canonical results"
 chk README.md                 "run_e3"               "README with E3 instructions"
 chk experiments/run_e4.py     "packet loss"          "E4 fidelity experiment"
 chk experiments/panel.py      "class Watch"          "control panel"

@@ -449,7 +449,7 @@ def main(argv):
     data, found = load_reps(dirs)
     reps = [os.path.basename(os.path.normpath(d)) for d in dirs if found.get(
         os.path.basename(os.path.normpath(d)))]
-    meta = {"reps": reps, "n_reps": len(reps), "rep_dirs": [os.path.abspath(d) for d in dirs],
+    meta = {"reps": reps, "n_reps": len(reps), "rep_dirs": [os.path.relpath(os.path.abspath(d), outdir) for d in dirs],
             "empty_rep_dirs": [k for k, v in found.items() if not v],
             "files_found": found,
             "generated": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
