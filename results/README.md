@@ -6,9 +6,10 @@
 | `results/other_instance/` | Two runs of the same code on a second instance of the same VM type, before the instance restarted; the second run stops after E3. Console log in `other_instance/reps.log`. |
 | `results/single_run/` | One earlier run of E1 to E4 with the revised core and `TCP_NODELAY` on all sockets, before the instrumentation hooks moved out of the timed frame interval. Logs in `single_run/logs/`. |
 | `results/rerun_client_nagle/` | One run with the revised core and the broker setting, before `TCP_NODELAY` on the client sockets (actuation p99 near 43 ms). |
+| `results/linux_original_code/` | Five runs of E1 to E4 of the original code (the code of the submitted paper, from `main` before this branch) on the Linux host of `results/rep*/`, with the default Mosquitto configuration (Nagle's algorithm enabled) and every process pinned to core 0. These runs reproduce the values of the submitted paper: median telemetry latency at N = 100 of 38.2 ms (submitted: 38.5 ms), E3 median of 118 to 119 ms (118 ms), E4 position RMSE of 0.89 to 0.91 m (0.88 to 0.92 m). Console log in `logs/reps.log`. |
 | `results/windows_original_code/` | One run of E1 to E4 on Windows (Intel i7-9700) with the original core and the default Mosquitto configuration (Nagle's algorithm enabled), with its figures. `platform-b/` holds E1 and E2 of one run of the original core on a second machine. |
 
-The data behind the submitted paper (Linux vCPU runs of the original core) and the macOS runs are not in this repository.
+The JSON files of the runs behind the submitted paper and the macOS runs are not in this repository; `results/linux_original_code/` reproduces the Linux values of the submitted paper.
 
 Files of one repetition directory:
 
