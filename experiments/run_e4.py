@@ -32,15 +32,16 @@ RES = str(ROOT / "results")
 
 
 class LoggingDT(MissionDT):
+    """Logs the state estimate of the mission twin once per frame (formal core hook)."""
     def __init__(self, *a, **k):
-        super().__init__(*a, **k)
+        super().__init__(*a, on_frame=self._log, **k)
         self.state_log = []   # (t, aid, lat, lon, yaw, stale)
 
-    def _delta(self, rec, telems):
-        super()._delta(rec, telems)
-        if rec.last_seq >= 0:      # only after first real telemetry
-            self.state_log.append((time.time(), rec.agent_id, rec.state.lat,
-                                   rec.state.lon, rec.state.yaw, rec.stale))
+    def _log(self, M):
+        now = time.time()
+        for aid, B in M.B.items():
+            if B.seeded:
+                self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale))
 
 
 def wrap_deg(a):
