@@ -7,7 +7,8 @@ Python core, a decoupled 3D mission view, and a live agent panel.
 
 Companion code for the paper *"A Mission-Level Digital Twin for Hybrid
 Fleets of Physical and Virtual Unmanned Vehicles"*. All numbers in the
-paper come from `results/*.json` (raw measurements included).
+paper come from the five runs in `results/rep1/` to `results/rep5/` (raw
+measurements included) and their aggregate in `results/summary.json`.
 
 ## Key ideas
 - The **mission** is the twinned entity with state `M^t = <B^t, φ^t, g^t>` (agent states,
@@ -19,9 +20,9 @@ paper come from `results/*.json` (raw measurements included).
   own model, state and MQTT connection. The mission core cannot tell
   them apart; agents can move to other processes/machines unchanged.
 - **Swarm coordination**: the Mission Context φ (horizontal distance to the
-  nearest same-domain neighbour) triggers corrective actuation. In the paper
-  runs, corrective commands reached neighbours with a median of about half a
-  frame (60 to 63 ms) and at most 134 ms. The runtime gives no timing guarantee.
+  nearest same-domain neighbour) triggers corrective actuation. E3 measures
+  the time a corrective command takes to reach the neighbours. The runtime
+  gives no timing guarantee.
 - **Bandwidth regulators** publish one of every six 50 Hz cycles
   (8.33 Hz, about 6x less uplink).
 
@@ -120,33 +121,63 @@ rate, status) twice a second. Renders as a colour-coded live table if
 ## Experiments (reproduce the paper)
 The whole battery, one command:
 ```bash
-bash run_all.sh
+bash run_all.sh              # one run, into results/
+REPS=5 bash run_all.sh       # five runs, into results/rep1/ to results/rep5/ (paper setting)
 ```
 Checks your virtual environment (by locating its python interpreter
 directly, rather than relying on `source activate` — more robust
 across Git Bash on Windows), starts the broker if needed, clears
-retained state, then runs E1 through E4 and regenerates the figures in
-sequence.
+retained state, then runs E1 through E5 and regenerates the figures in
+sequence. With `REPS` above 1, repetition r writes its JSON files and
+figures into `results/rep<r>/`, and `experiments/aggregate.py` then writes
+`results/summary.json` and `results/summary.md`. One repetition takes
+about 15 min.
+
+| Experiment | Script | Output file |
+|---|---|---|
+| E1 scalability, N = 1 to 100 agents, regulator on | `run_experiments.py` | `e1_scalability.json` |
+| E2 regulator on and off, N = 10 | `run_experiments.py` | `e2_regulator.json` |
+| E3 swarm propagation latency, N = 10, 25, 50 | `run_e3.py` | `e3_swarm.json` |
+| E4 twin fidelity at 0, 5 and 10% loss, N = 10, regulator on | `run_e4.py` | `e4_fidelity.json` |
+| E4 with the regulator off | `run_e4.py --no-regulator` | `e4_fidelity_noreg.json` |
+| E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 | `run_e5.py` | `e5_resources.json` |
 
 Or step by step:
 ```bash
-python experiments/run_experiments.py all   # E1 scalability + E2 regulators (~6 min)
-python experiments/run_e3.py                # E3 swarm propagation latency
-python experiments/run_e4.py                # E4 twin fidelity at 0/5/10% loss
-python experiments/make_figures.py          # figures into results/
+python experiments/run_experiments.py all      # E1 scalability + E2 regulators (~6 min)
+python experiments/run_e3.py                   # E3 swarm propagation latency
+python experiments/run_e4.py                   # E4 twin fidelity at 0/5/10% loss
+python experiments/run_e4.py --no-regulator    # E4 with the regulator off
+python experiments/run_e5.py                   # E5 CPU and memory of the core process
+python experiments/make_figures.py             # figures into results/
+python experiments/aggregate.py results/rep1 results/rep2 ...   # summary over repetitions
 ```
+Every script reads and writes the directory in `MDT_RESULTS` (default
+`results/`), e.g. `MDT_RESULTS=results/rep1 python experiments/run_e3.py`.
 `run_all.sh` starts Mosquitto with `mosquitto.conf` when no broker is running
 and pins the broker and the experiments to core 0 with `taskset` when available.
 A broker that is already running keeps its own configuration.
 
-Results of the revised paper (`results/`, one run per configuration, Linux VM,
-Xeon 2.10 GHz, broker and experiments on core 0): no 125 ms frame overrun up to
-100 agents (longest frame 29.0 ms); regulators cut uplink 6.0x and redundant
-samples 132x; corrective commands reach neighbours with a median of 60 to 63 ms
-and at most 134 ms; position RMSE 0.61 to 0.62 m up to 10% injected loss.
-`results/README.md` describes each results directory, including the data of the
-submitted version (`results/submitted/`), measured with the original core and the
-default Mosquitto configuration (Nagle's algorithm enabled).
+### Measurements
+| Quantity | Definition |
+|---|---|
+| Frame time (`frame_ms`) | Time from the start of the frame (collection of the inputs I^t) to the return of the `publish` call of the last actuation. The `on_frame` and 3D-view hooks run after the measurement. A frame overrun is a frame time above 125 ms. |
+| Release jitter (`release_jitter_ms`) | Actual start of a frame minus its scheduled start. The schedule advances 125 ms per frame and restarts from the current time after an overrun. |
+| Core CPU (`core_cpu_pct`, E1 to E3) | User + system CPU time of the frame loop thread (`time.thread_time`) plus the paho-mqtt network thread (`/proc/self/task/<tid>/stat`, Linux only, resolution one clock tick) over the run duration, in % of one core. The virtual agents run as threads of the same process and are not counted. `core_cpu_s` (E1, E2) gives the two threads apart. |
+| Process CPU (`cpu_pct`, E5) | User + system CPU time of the whole Mission-DT process over wall time, in % of one core. The agents run in a second process; N = 0 is the core connected with no agent. |
+| Peak memory (`peak_rss_mib`, E5) | Peak resident set of the Mission-DT process (`VmHWM` on Linux, `ru_maxrss` elsewhere). |
+| Repetition statistics (`summary.*`) | Mean and sample standard deviation over the per-run values of each metric; *pooled* columns use all raw samples of all repetitions, with nearest-rank percentiles. |
+
+Results of the revised paper (`results/rep1/` to `results/rep5/`, five runs,
+Linux VM, Xeon 2.10 GHz, broker and experiments on core 0): <TBD overruns>
+frame overruns up to 100 agents (longest frame <TBD> ms); regulators cut uplink
+<TBD>x and redundant samples <TBD>x; corrective commands reach neighbours with a
+median of <TBD> ms and at most <TBD> ms; position RMSE <TBD> m with the regulator
+and <TBD> m without it up to 10% injected loss; the Mission-DT process uses
+<TBD>% of one core and <TBD> MiB at 100 agents.
+`results/README.md` describes each results directory, including a Windows run
+of the original core with the default Mosquitto configuration (Nagle's
+algorithm enabled) in `results/windows_original_code/`.
 
 `experiments/clear_retained.py` clears leftover retained MQTT state
 (ghost agent registrations, stale checkpoints/routes) — run it before
@@ -158,7 +189,7 @@ experiments if you've been poking around the broker manually;
 bash check_uptodate.sh
 ```
 Greps your local files for markers of every major feature (swarm
-separation, retained registration, the four experiment scripts, the 3D
+separation, retained registration, the experiment scripts, the 3D
 view's checkpoints/routes/panel support, …) and reports what's missing
 — a quick sanity check after pulling or before reporting an issue.
 
@@ -167,14 +198,16 @@ view's checkpoints/routes/panel support, …) and reports what's missing
 mission_dt/       model.py (Δ^e and its functions), core.py (MQTT I/O),
                   agents.py (virtual agents), core_orig.py (original core)
 experiments/      demo_mission, staged_photo, run_experiments (E1/E2),
-                  run_e3, run_e4, panel, make_figures, clear_retained
+                  run_e3, run_e4, run_e5, aggregate, panel, make_figures,
+                  clear_retained
 viz/              3D mission view (Ursina)
 configs/          mission configuration files
-results/          raw measurements (JSON), logs; see results/README.md
+results/          rep1/ to rep5/ (raw measurements, JSON), summary.json/.md,
+                  logs; see results/README.md
 tests/            test_equivalence.py (original core vs. model.py)
 mosquitto.conf    broker configuration of the paper runs
 run_mission.sh    one-command launcher (broker + mission + 3D view)
-run_all.sh        one-command experiment battery (E1-E4 + figures)
+run_all.sh        one-command experiment battery (E1-E5 + figures)
 check_uptodate.sh maintainer script: verifies a checkout is current
 requirements.txt  Python dependencies
 ```
