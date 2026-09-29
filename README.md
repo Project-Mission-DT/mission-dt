@@ -10,19 +10,24 @@ Fleets of Physical and Virtual Unmanned Vehicles"*. All numbers in the
 paper come from `results/*.json` (raw measurements included).
 
 ## Key ideas
-- The **mission** is the twinned entity: `M = <states, transitions, goals, context φ>`.
+- The **mission** is the twinned entity with state `M^t = <B^t, φ^t, g^t>` (agent states,
+  Mission Context, agent goals). Once per 125 ms frame, the mission transition `Δ^e`
+  composes `δ^e` (state update), `Φ` (context), `σ` (goals) and `λ` (actuation), in this
+  order (`mission_dt/model.py`).
 - **Hybrid agents**: each agent is a physical vehicle (ArduPilot bridged
   to MQTT) or a **virtual agent — an independent digital twin** with its
   own model, state and MQTT connection. The mission core cannot tell
   them apart; agents can move to other processes/machines unchanged.
-- **Swarm coordination**: the mission context φ (pairwise distances)
-  triggers corrective actuation; propagation to neighbours is bounded
-  by two DT frames (250 ms) — measured, not assumed.
-- **Bandwidth regulators** decimate 50 Hz sensing to the 8 Hz frame
-  rate (~6x uplink reduction).
+- **Swarm coordination**: the Mission Context φ (horizontal distance to the
+  nearest same-domain neighbour) triggers corrective actuation. In the paper
+  runs, corrective commands reached neighbours with a median of about half a
+  frame (60 to 63 ms) and at most 134 ms. The runtime gives no timing guarantee.
+- **Bandwidth regulators** publish one of every six 50 Hz cycles
+  (8.33 Hz, about 6x less uplink).
 
 ## Requirements
-- Python 3.10+ · Mosquitto MQTT broker (localhost)
+- Python 3.10+ · Mosquitto MQTT broker (localhost); for the paper results,
+  start it with `mosquitto -c mosquitto.conf` (`set_tcp_nodelay true`)
 - `pip install -r requirements.txt`
 - 3D view (GPU machine): `pip install ursina imageio imageio-ffmpeg`
 - Panel (optional pretty mode): `pip install rich`
@@ -130,12 +135,18 @@ python experiments/run_e3.py                # E3 swarm propagation latency
 python experiments/run_e4.py                # E4 twin fidelity at 0/5/10% loss
 python experiments/make_figures.py          # figures into results/
 ```
-Measured on 1 vCPU (Xeon 2.10 GHz): zero 125 ms frame overruns up to
-100 agents; regulators cut uplink ~6x and redundant samples ~71x;
-swarm corrective actuation median 118 ms, max 215 ms (bound: 250 ms);
-twin position RMSE stays under 1 m through 10% injected packet loss.
-Independently reproduced on Windows 10 (i7-9700) and macOS (Apple
-Silicon) — see the paper's cross-platform table.
+`run_all.sh` starts Mosquitto with `mosquitto.conf` when no broker is running
+and pins the broker and the experiments to core 0 with `taskset` when available.
+A broker that is already running keeps its own configuration.
+
+Results of the revised paper (`results/`, one run per configuration, Linux VM,
+Xeon 2.10 GHz, broker and experiments on core 0): no 125 ms frame overrun up to
+100 agents (longest frame 29.0 ms); regulators cut uplink 6.0x and redundant
+samples 132x; corrective commands reach neighbours with a median of 60 to 63 ms
+and at most 134 ms; position RMSE 0.61 to 0.62 m up to 10% injected loss.
+`results/README.md` describes each results directory, including the data of the
+submitted version (`results/submitted/`), measured with the original core and the
+default Mosquitto configuration (Nagle's algorithm enabled).
 
 `experiments/clear_retained.py` clears leftover retained MQTT state
 (ghost agent registrations, stale checkpoints/routes) — run it before
@@ -153,12 +164,15 @@ view's checkpoints/routes/panel support, …) and reports what's missing
 
 ## Repository layout
 ```
-mission_dt/       core (MissionDT) and virtual agents
+mission_dt/       model.py (Δ^e and its functions), core.py (MQTT I/O),
+                  agents.py (virtual agents), core_orig.py (original core)
 experiments/      demo_mission, staged_photo, run_experiments (E1/E2),
                   run_e3, run_e4, panel, make_figures, clear_retained
 viz/              3D mission view (Ursina)
 configs/          mission configuration files
-results/          raw measurements (JSON) and figures
+results/          raw measurements (JSON), logs; see results/README.md
+tests/            test_equivalence.py (original core vs. model.py)
+mosquitto.conf    broker configuration of the paper runs
 run_mission.sh    one-command launcher (broker + mission + 3D view)
 run_all.sh        one-command experiment battery (E1-E4 + figures)
 check_uptodate.sh maintainer script: verifies a checkout is current
