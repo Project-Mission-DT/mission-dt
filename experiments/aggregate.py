@@ -13,7 +13,7 @@ Per configuration and per scalar metric: mean, sample standard deviation
 repetitions over the per-repetition values.
 Pooled statistics: computed over the raw_* sample arrays (and E4
 rows_dom_m_err_hold) concatenated over all repetitions. Percentiles use the
-nearest-rank rule of the producing scripts: sorted[min(n-1, int(p/100*n))].
+rank floor(pn/100)+1 rule of the producing scripts: sorted[min(n-1, int(p/100*n))].
 """
 import json
 import math
@@ -41,7 +41,7 @@ DOMAINS = ["aerial", "surface"]
 
 # ---------------------------------------------------------------- helpers
 def pctl(v, p):
-    """Nearest-rank percentile on a sorted list (same rule as the runners)."""
+    """Percentile (sample of rank floor(pn/100)+1) on a sorted list (same rule as the runners)."""
     if not v:
         return None
     return v[min(len(v) - 1, int(p / 100.0 * len(v)))]
@@ -334,7 +334,7 @@ def render_md(summary, meta):
     L = [f"# Experiment summary ({meta['n_reps']} repetitions)", "",
          f"Repetitions: {', '.join(meta['reps'])}. Cells show mean ± sample "
          "standard deviation over repetitions; columns marked *pooled* use all "
-         "samples of all repetitions (nearest-rank percentiles). Times in ms.", ""]
+         "samples of all repetitions (percentile = sample of rank floor(pn/100)+1). Times in ms.", ""]
 
     e = summary.get("e1_scalability")
     if e:
@@ -453,7 +453,7 @@ def main(argv):
             "empty_rep_dirs": [k for k, v in found.items() if not v],
             "files_found": found,
             "generated": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-            "percentile_rule": "nearest rank: sorted[min(n-1, int(p/100*n))]",
+            "percentile_rule": "rank floor(pn/100)+1: sorted[min(n-1, int(p/100*n))]",
             "rep_std": "sample standard deviation over repetitions (None with 1 rep)",
             "pooled_std": "population standard deviation over pooled samples"}
     summary = {"meta": meta}

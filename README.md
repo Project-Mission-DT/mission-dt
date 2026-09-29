@@ -70,7 +70,7 @@ alt_m]`; alt>0 air corridor, 0 surface, <0 submerged) and per-drone
 `configs/mission_checkpoints_example.json` for a small hand-written
 example, or `configs/mission_photo.json` for a denser 6-agent, 10-
 checkpoint mission (this is the one used to compose the paper's Figure
-7). Checkpoints and planned routes are published retained on MQTT, so
+4). Checkpoints and planned routes are published retained on MQTT, so
 the 3D view labels them with no config file of its own.
 
 ## Staging a screenshot deterministically
@@ -166,7 +166,7 @@ A broker that is already running keeps its own configuration.
 | Core CPU (`core_cpu_pct`, E1 to E3) | User + system CPU time of the frame loop thread (`time.thread_time`) plus the paho-mqtt network thread (`/proc/self/task/<tid>/stat`, Linux only, resolution one clock tick) over the run duration, in % of one core. The virtual agents run as threads of the same process and are not counted. `core_cpu_s` (E1, E2) gives the two threads apart. |
 | Process CPU (`cpu_pct`, E5) | User + system CPU time of the whole Mission-DT process over wall time, in % of one core. The agents run in a second process; N = 0 is the core connected with no agent. |
 | Peak memory (`peak_rss_mib`, E5) | Peak resident set of the Mission-DT process (`VmHWM` on Linux, `ru_maxrss` elsewhere). |
-| Repetition statistics (`summary.*`) | Mean and sample standard deviation over the per-run values of each metric; *pooled* columns use all raw samples of all repetitions, with nearest-rank percentiles. |
+| Repetition statistics (`summary.*`) | Mean and sample standard deviation over the per-run values of each metric; *pooled* columns use all raw samples of all repetitions, with the percentile rule rank floor(pn/100)+1. |
 
 Results of the revised paper (`results/rep1/` to `results/rep5/`, five runs,
 Linux VM, Xeon 2.10 GHz, broker and experiments on core 0; x ± y is the mean ±
