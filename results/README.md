@@ -21,7 +21,10 @@ Files of one repetition directory:
 | `e4_fidelity.json` | E4 twin fidelity at 0, 5 and 10% loss, regulator on |
 | `e4_fidelity_noreg.json` | E4 with the regulator off |
 | `e5_resources.json` | E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 |
+| `e6_comparison.json` | E6 CPU and memory per process of Mission-DT (MQTT), ROS 2 and Gazebo, N = 10, 50, 100 |
 
 The `raw_*` arrays hold every sample (ms). In E4, each row of `rows_dom_m_err_hold` holds the domain, the stale streak m, the position error of the twin (m) and the position error of a hold of the last received state (m) for one agent frame. The main `README.md` defines frame time, release jitter and CPU accounting.
 
-Platform of `results/rep*/`, `results/other_instance/`, `results/single_run/` and `results/rerun_client_nagle/`: Linux VM (kernel 6.18), Intel Xeon 2.10 GHz, 2 vCPU, broker and experiments pinned to core 0 (`taskset -c 0`), Python 3.11.15, paho-mqtt 2.1.0, Mosquitto 2.0.18.
+E6 (`e6_comparison.json` in `results/rep1/` to `results/rep5/`) ran after E1 to E5 on a Linux VM of the same type (kernel 6.18, Intel Xeon 2.10 GHz, 2 vCPU, every process on core 0), with Python 3.12.3 for every stack, ROS 2 Jazzy (rclpy 7.1.12, `rmw_fastrtps_cpp` 8.4.4, Fast DDS 2.14.6) and Gazebo Harmonic (gz-sim 8.15.0, gz-physics 7.8.0 with DART, gz-transport 13.6.0); each record holds one stack at one N, with `processes.<name>.cpu_pct`, `peak_rss_mib` (VmHWM), `rss_end_mib` (VmRSS at the end of the window) and `threads`, the mission-layer counters of the window (`mission`, `agents`) and, for Gazebo, the real-time factor (`gazebo.rtf`). The console log is `logs/e6_reps.log`. The main `README.md` describes the three stacks. In every Gazebo run the monitor received the odometry of all N vehicles (`rep1` at N = 100 after renewing 89 subscriptions that had not matched, `gazebo.odom_subscriptions_renewed`).
+
+Platform of `results/rep*/`, `results/other_instance/`, `results/single_run/` and `results/rerun_client_nagle/`: Linux VM (kernel 6.18), Intel Xeon 2.10 GHz, 2 vCPU, broker and experiments pinned to core 0 (`taskset -c 0`), Python 3.11.15 (E1 to E5), paho-mqtt 2.1.0, Mosquitto 2.0.18.

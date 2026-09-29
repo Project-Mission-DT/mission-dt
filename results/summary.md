@@ -1,6 +1,6 @@
 # Experiment summary (5 repetitions)
 
-Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard deviation over repetitions; columns marked *pooled* use all samples of all repetitions (nearest-rank percentiles). Times in ms.
+Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard deviation over repetitions; columns marked *pooled* use all samples of all repetitions (percentile = sample of rank floor(pn/100)+1). Times in ms.
 
 ## E1 Scalability
 
@@ -93,4 +93,57 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 10 | 5 | 1.5 ± 0.1 | 23.1 ± 0.1 | 240 ± 0 | 0 ± 0 |
 | 50 | 5 | 5.8 ± 0.2 | 23.8 ± 0.1 | 240 ± 0 | 0 ± 0 |
 | 100 | 5 | 12.1 ± 0.2 | 24.8 ± 0.0 | 240 ± 0 | 0 ± 0 |
+
+## E6 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo
+
+Per process, over the measured window: CPU = (utime + stime) / wall in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the window. All processes on core 0. *total* sums the processes of the stack.
+
+| stack | N | reps | process | CPU % of one core | peak RSS MiB | RSS end MiB |
+|---|---|---|---|---|---|---|
+| mission_dt | 10 | 5 | core | 1.4 ± 0.1 | 25.4 ± 0.0 | 25.4 ± 0.0 |
+| mission_dt | 10 | 5 | agents | 2.6 ± 0.3 | 29.2 ± 0.0 | 29.2 ± 0.0 |
+| mission_dt | 10 | 5 | broker | 0.3 ± 0.0 | 7.4 ± 0.0 | 7.4 ± 0.0 |
+| mission_dt | 10 | 5 | total | 4.4 ± 0.4 | 62.0 ± 0.0 | 62.0 ± 0.0 |
+| mission_dt | 50 | 5 | core | 5.9 ± 0.2 | 26.3 ± 0.0 | 26.3 ± 0.0 |
+| mission_dt | 50 | 5 | agents | 11.6 ± 0.4 | 49.6 ± 0.1 | 49.6 ± 0.1 |
+| mission_dt | 50 | 5 | broker | 1.3 ± 0.1 | 7.4 ± 0.0 | 7.4 ± 0.0 |
+| mission_dt | 50 | 5 | total | 18.8 ± 0.6 | 83.3 ± 0.1 | 83.3 ± 0.1 |
+| mission_dt | 100 | 5 | core | 11.8 ± 1.1 | 27.4 ± 0.1 | 27.4 ± 0.1 |
+| mission_dt | 100 | 5 | agents | 21.1 ± 1.6 | 75.1 ± 0.1 | 75.1 ± 0.1 |
+| mission_dt | 100 | 5 | broker | 2.4 ± 0.2 | 7.6 ± 0.0 | 7.6 ± 0.0 |
+| mission_dt | 100 | 5 | total | 35.4 ± 2.9 | 110.1 ± 0.2 | 110.1 ± 0.2 |
+| ros2 | 10 | 5 | core | 4.3 ± 0.4 | 69.6 ± 0.1 | 69.6 ± 0.1 |
+| ros2 | 10 | 5 | agents | 3.5 ± 0.2 | 74.2 ± 0.0 | 74.2 ± 0.0 |
+| ros2 | 10 | 5 | total | 7.8 ± 0.5 | 143.8 ± 0.1 | 143.8 ± 0.1 |
+| ros2 | 50 | 5 | core | 19.3 ± 3.8 | 75.3 ± 0.1 | 75.3 ± 0.1 |
+| ros2 | 50 | 5 | agents | 13.4 ± 0.3 | 97.1 ± 0.1 | 97.1 ± 0.1 |
+| ros2 | 50 | 5 | total | 32.7 ± 3.7 | 172.4 ± 0.2 | 172.4 ± 0.2 |
+| ros2 | 100 | 5 | core | 28.7 ± 2.1 | 82.4 ± 0.2 | 82.4 ± 0.2 |
+| ros2 | 100 | 5 | agents | 23.0 ± 0.8 | 125.3 ± 0.0 | 125.3 ± 0.0 |
+| ros2 | 100 | 5 | total | 51.8 ± 2.7 | 207.8 ± 0.2 | 207.8 ± 0.2 |
+| gazebo | 10 | 5 | gz_sim | 47.4 ± 0.8 | 146.6 ± 0.1 | 146.6 ± 0.1 |
+| gazebo | 10 | 5 | total | 47.4 ± 0.8 | 146.6 ± 0.1 | 146.6 ± 0.1 |
+| gazebo | 50 | 5 | gz_sim | 97.2 ± 0.1 | 263.3 ± 0.2 | 263.3 ± 0.2 |
+| gazebo | 50 | 5 | total | 97.2 ± 0.1 | 263.3 ± 0.2 | 263.3 ± 0.2 |
+| gazebo | 100 | 5 | gz_sim | 97.2 ± 0.1 | 409.7 ± 0.3 | 409.7 ± 0.3 |
+| gazebo | 100 | 5 | total | 97.2 ± 0.1 | 409.7 ± 0.3 | 409.7 ± 0.3 |
+
+Mission layer in the window (ms):
+
+| stack | N | reps | max overruns/mean frames | frame mean | frame max | agents received | min msgs per agent | telemetry Hz per agent | tele p50 | tele p99 | min act. per agent | act p99 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| mission_dt | 10 | 5 | 0/240 | 0.51 ± 0.03 | 1.07 ± 0.27 | 10 ± 0 | 250 ± 0 | 8.33 ± 0.00 | 0.68 ± 0.37 | 2.07 ± 0.37 | 241 ± 1 | 1.91 ± 0.31 |
+| mission_dt | 50 | 5 | 0/240 | 4.40 ± 0.29 | 17.45 ± 3.41 | 50 ± 0 | 250 ± 0 | 8.33 ± 0.00 | 0.69 ± 0.18 | 8.56 ± 1.09 | 240 ± 0 | 8.91 ± 0.96 |
+| mission_dt | 100 | 5 | 0/240 | 10.77 ± 1.42 | 42.22 ± 6.69 | 100 ± 0 | 250 ± 0 | 8.33 ± 0.00 | 1.52 ± 0.78 | 23.50 ± 1.85 | 240 ± 0 | 17.89 ± 1.85 |
+| ros2 | 10 | 5 | 0/241 | 1.81 ± 0.14 | 7.57 ± 2.61 | 10 ± 0 | 250 ± 0 | 8.33 ± 0.00 | 0.63 ± 0.13 | 2.20 ± 0.31 | 240 ± 0 | 2.27 ± 0.26 |
+| ros2 | 50 | 5 | 0/240 | 5.83 ± 0.51 | 16.68 ± 8.16 | 50 ± 0 | 250 ± 0 | 8.33 ± 0.01 | 2.32 ± 0.23 | 11.63 ± 0.91 | 240 ± 0 | 11.90 ± 1.05 |
+| ros2 | 100 | 5 | 0/240 | 8.99 ± 0.53 | 22.84 ± 5.53 | 100 ± 0 | 250 ± 0 | 8.33 ± 0.00 | 8.17 ± 0.93 | 31.69 ± 4.80 | 240 ± 0 | 24.60 ± 4.25 |
+
+Gazebo real-time factor over the window (sim time / wall time; 1 ms physics step, target 1.0) and odometry received by the monitor:
+
+| N | reps | RTF | min RTF (stats msg) | steps/s | models received | odom Hz per model (wall) | monitor CPU % |
+|---|---|---|---|---|---|---|---|
+| 10 | 5 | 0.999 ± 0.000 | 0.446 ± 0.225 | 999 ± 0 | 10 ± 0 | 8.27 ± 0.00 | 2.1 ± 0.1 |
+| 50 | 5 | 0.744 ± 0.014 | 0.192 ± 0.021 | 744 ± 14 | 50 ± 0 | 6.15 ± 0.12 | 2.7 ± 0.0 |
+| 100 | 5 | 0.329 ± 0.006 | 0.095 ± 0.012 | 329 ± 6 | 100 ± 0 | 2.71 ± 0.05 | 2.8 ± 0.0 |
 

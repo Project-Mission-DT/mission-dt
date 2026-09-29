@@ -181,7 +181,12 @@ redundant samples 131.92 ± 5.06x; corrective commands reach neighbours with a
 median of 61.2 ± 2.7 to 65.3 ± 0.6 ms and at most 287.6 ms (pooled); position
 RMSE 0.617 ± 0.001 to 0.632 ± 0.011 m with the regulator and 0.182 ± 0.003 to
 0.195 ± 0.006 m without it up to 10% injected loss; the Mission-DT process uses
-12.1 ± 0.2% of one core and 24.8 ± 0.0 MiB at 100 agents.
+12.1 ± 0.2% of one core and 24.8 ± 0.0 MiB at 100 agents. In E6 (Python 3.12,
+all processes on core 0), at 100 agents the Mission-DT stack (core, agents and
+broker) uses 35.4 ± 2.9% of one core and 110.1 ± 0.2 MiB of peak resident
+memory, the ROS 2 stack 51.8 ± 2.7% and 207.8 ± 0.2 MiB, and the Gazebo server
+97.2 ± 0.1% and 409.7 ± 0.3 MiB at a real-time factor of 0.329 ± 0.006 (0.999 ±
+0.000 at 10 vehicles, 0.744 ± 0.014 at 50).
 `results/README.md` describes each results directory, including a Windows run
 of the original core with the default Mosquitto configuration (Nagle's
 algorithm enabled) in `results/windows_original_code/`.

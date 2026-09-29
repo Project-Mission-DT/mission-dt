@@ -23,7 +23,8 @@
     "e3_swarm",
     "e4_fidelity",
     "e4_fidelity_noreg",
-    "e5_resources"
+    "e5_resources",
+    "e6_comparison"
    ],
    "rep2": [
     "e1_scalability",
@@ -31,7 +32,8 @@
     "e3_swarm",
     "e4_fidelity",
     "e4_fidelity_noreg",
-    "e5_resources"
+    "e5_resources",
+    "e6_comparison"
    ],
    "rep3": [
     "e1_scalability",
@@ -39,7 +41,8 @@
     "e3_swarm",
     "e4_fidelity",
     "e4_fidelity_noreg",
-    "e5_resources"
+    "e5_resources",
+    "e6_comparison"
    ],
    "rep4": [
     "e1_scalability",
@@ -47,7 +50,8 @@
     "e3_swarm",
     "e4_fidelity",
     "e4_fidelity_noreg",
-    "e5_resources"
+    "e5_resources",
+    "e6_comparison"
    ],
    "rep5": [
     "e1_scalability",
@@ -55,11 +59,12 @@
     "e3_swarm",
     "e4_fidelity",
     "e4_fidelity_noreg",
-    "e5_resources"
+    "e5_resources",
+    "e6_comparison"
    ]
   },
-  "generated": "2026-09-29T13:54:58-0300",
-  "percentile_rule": "nearest rank: sorted[min(n-1, int(p/100*n))]",
+  "generated": "2026-09-29T17:18:29-0300",
+  "percentile_rule": "rank floor(pn/100)+1: sorted[min(n-1, int(p/100*n))]",
   "rep_std": "sample standard deviation over repetitions (None with 1 rep)",
   "pooled_std": "population standard deviation over pooled samples"
  },
@@ -4444,6 +4449,3203 @@
       "std": 0.0,
       "min": 0,
       "max": 0,
+      "n": 5
+     }
+    }
+   }
+  ]
+ },
+ "e6_comparison": {
+  "config_key": "stack,n_agents",
+  "configs": [
+   {
+    "stack": "mission_dt",
+    "n_agents": 10,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.00108019240024,
+      "std": 0.0004721958894935681,
+      "min": 30.000520864000464,
+      "max": 30.001723526000205,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 0.43,
+      "std": 0.02738612787525827,
+      "min": 0.4,
+      "max": 0.44999999999999996,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 1.4332813249235294,
+      "std": 0.09127611442830476,
+      "min": 1.33327652370949,
+      "max": 1.499963419342106,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 25.42421875,
+      "std": 0.019452968121857393,
+      "min": 25.3984375,
+      "max": 25.4453125,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 25.42421875,
+      "std": 0.019452968121857393,
+      "min": 25.3984375,
+      "max": 25.4453125,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 3,
+      "std": 0.0,
+      "min": 3,
+      "max": 3,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 0.79,
+      "std": 0.09137833441248537,
+      "min": 0.65,
+      "max": 0.8700000000000001,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 2.6332359417577176,
+      "std": 0.3045575972031898,
+      "min": 2.1666290493641944,
+      "max": 2.8998334020578436,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 29.184375,
+      "std": 0.0377109949567099,
+      "min": 29.140625,
+      "max": 29.2265625,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 29.184375,
+      "std": 0.0377109949567099,
+      "min": 29.140625,
+      "max": 29.2265625,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 22,
+      "std": 0.0,
+      "min": 22,
+      "max": 22,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.cpu_s": {
+      "mean": 0.094,
+      "std": 0.008944271909999158,
+      "min": 0.08,
+      "max": 0.1,
+      "n": 5
+     },
+     "processes.broker.cpu_pct": {
+      "mean": 0.31332177260069843,
+      "std": 0.02980963717753799,
+      "min": 0.26666016343859666,
+      "max": 0.3333205930425164,
+      "n": 5
+     },
+     "processes.broker.peak_rss_mib": {
+      "mean": 7.36015625,
+      "std": 0.027814036123309217,
+      "min": 7.328125,
+      "max": 7.390625,
+      "n": 5
+     },
+     "processes.broker.rss_end_mib": {
+      "mean": 7.36015625,
+      "std": 0.027814036123309217,
+      "min": 7.328125,
+      "max": 7.390625,
+      "n": 5
+     },
+     "processes.broker.threads": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 4.379839039281945,
+      "std": 0.3947703114066178,
+      "min": 3.799934025038741,
+      "max": 4.733061414853031,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 61.96875,
+      "std": 0.03886669676197734,
+      "min": 61.92578125,
+      "max": 62.02734375,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 61.96875,
+      "std": 0.03886669676197734,
+      "min": 61.92578125,
+      "max": 62.02734375,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240.4,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 304,
+      "std": 0.0,
+      "min": 304,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 0.5117986506714296,
+      "std": 0.03424688060855073,
+      "min": 0.4568237166533133,
+      "max": 0.5393761451940846,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 0.4854354002418404,
+      "std": 0.036960850084133176,
+      "min": 0.42330800079071196,
+      "max": 0.5153129995960626,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 0.8616330000222661,
+      "std": 0.0611774928188191,
+      "min": 0.7678459996895981,
+      "max": 0.9318040001744521,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 1.066573399839399,
+      "std": 0.2735887421439217,
+      "min": 0.8243800002674107,
+      "max": 1.4572509999197791,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240.4,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 0.14415351366547388,
+      "std": 0.018142687371044824,
+      "min": 0.12207245864980602,
+      "max": 0.16452275945443207,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 0.1298906000556599,
+      "std": 0.012581999861141472,
+      "min": 0.11898899992957013,
+      "max": 0.15122400009204284,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 0.3100776001701888,
+      "std": 0.21140204571314639,
+      "min": 0.19360100031917682,
+      "max": 0.6873530001030304,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 2.485519800120528,
+      "std": 2.3074102069403186,
+      "min": 0.19773700023506535,
+      "max": 5.925180000303953,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.332979286197972,
+      "std": 0.00011978634755414709,
+      "min": 8.332815402192306,
+      "max": 8.333152576143252,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 0.760311336517334,
+      "std": 0.3348312188689546,
+      "min": 0.3742959022521973,
+      "max": 1.2944653511047364,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 0.6798267364501953,
+      "std": 0.36938881487517516,
+      "min": 0.28252601623535156,
+      "max": 1.2853145599365234,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 2.06756591796875,
+      "std": 0.3695615258639794,
+      "min": 1.491546630859375,
+      "max": 2.503633499145508,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 4.466056823730469,
+      "std": 1.6185854364905587,
+      "min": 3.098011016845703,
+      "max": 6.449460983276367,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 2406,
+      "std": 5.477225575051661,
+      "min": 2400,
+      "max": 2410,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.332994544721037,
+      "std": 0.00013617647554749928,
+      "min": 8.332815645495353,
+      "max": 8.333149127127614,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.7811211600201,
+      "std": 0.08449036903692095,
+      "min": 567.6747674767477,
+      "max": 567.9092814371257,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 0.9037490445053924,
+      "std": 0.052134238984430765,
+      "min": 0.8387702134634943,
+      "max": 0.9789921930716741,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 0.8674144744873047,
+      "std": 0.04743133751695604,
+      "min": 0.8056163787841797,
+      "max": 0.9276866912841797,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 1.9132614135742188,
+      "std": 0.3065413696258641,
+      "min": 1.6813278198242188,
+      "max": 2.4499893188476562,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 3.048419952392578,
+      "std": 0.3984074688352007,
+      "min": 2.4771690368652344,
+      "max": 3.4983158111572266,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 2406,
+      "std": 5.477225575051661,
+      "min": 2400,
+      "max": 2410,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "mission_dt",
+    "n_agents": 50,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.001294416400107,
+      "std": 0.0008456780709860066,
+      "min": 30.00040703600007,
+      "max": 30.00265405900018,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 1.768,
+      "std": 0.052630789467763166,
+      "min": 1.6799999999999997,
+      "max": 1.81,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 5.893079333934609,
+      "std": 0.17544229161447294,
+      "min": 5.599839841780656,
+      "max": 6.03325147498174,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 26.28046875,
+      "std": 0.025073135212314395,
+      "min": 26.2421875,
+      "max": 26.3046875,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 26.28046875,
+      "std": 0.025073135212314395,
+      "min": 26.2421875,
+      "max": 26.3046875,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 3,
+      "std": 0.0,
+      "min": 3,
+      "max": 3,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 3.48,
+      "std": 0.120208152801713,
+      "min": 3.31,
+      "max": 3.6399999999999997,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 11.59950216976353,
+      "std": 0.4007801389314496,
+      "min": 11.033017783508319,
+      "max": 12.133168712117973,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 49.628125,
+      "std": 0.054575778739290565,
+      "min": 49.5703125,
+      "max": 49.69140625,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 49.628125,
+      "std": 0.054575778739290565,
+      "min": 49.5703125,
+      "max": 49.69140625,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 102,
+      "std": 0.0,
+      "min": 102,
+      "max": 102,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.cpu_s": {
+      "mean": 0.388,
+      "std": 0.016431676725154998,
+      "min": 0.36,
+      "max": 0.4,
+      "n": 5
+     },
+     "processes.broker.cpu_pct": {
+      "mean": 1.293277471861876,
+      "std": 0.05476892551402929,
+      "min": 1.1999656803815695,
+      "max": 1.3333152430898874,
+      "n": 5
+     },
+     "processes.broker.peak_rss_mib": {
+      "mean": 7.4234375,
+      "std": 0.02220042537247316,
+      "min": 7.3984375,
+      "max": 7.44921875,
+      "n": 5
+     },
+     "processes.broker.rss_end_mib": {
+      "mean": 7.4234375,
+      "std": 0.02220042537247316,
+      "min": 7.3984375,
+      "max": 7.44921875,
+      "n": 5
+     },
+     "processes.broker.threads": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 18.785858975560014,
+      "std": 0.6163545542062305,
+      "min": 17.832823305670544,
+      "max": 19.4997354301896,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 83.33203125,
+      "std": 0.07223922659729269,
+      "min": 83.2109375,
+      "max": 83.3984375,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 83.33203125,
+      "std": 0.07223922659729269,
+      "min": 83.2109375,
+      "max": 83.3984375,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 304,
+      "std": 0.0,
+      "min": 304,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 4.40387063499024,
+      "std": 0.2918545446876951,
+      "min": 4.116509999989283,
+      "max": 4.8459451250209895,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 4.046265199940535,
+      "std": 0.3190879202434709,
+      "min": 3.612645999965025,
+      "max": 4.35386200024368,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 12.728231600158324,
+      "std": 2.6012460870850895,
+      "min": 9.990237000238267,
+      "max": 16.643163000480854,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 17.452115999913076,
+      "std": 3.4086050713612766,
+      "min": 13.407612000264635,
+      "max": 20.463095999730285,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 0.14537118486068193,
+      "std": 0.015575823758700535,
+      "min": 0.12654482541923548,
+      "max": 0.1640711284626113,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 0.10122059993591392,
+      "std": 0.004645683026790142,
+      "min": 0.09742400015966268,
+      "max": 0.10905199997068848,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 1.3019617999816546,
+      "std": 0.6790519053764997,
+      "min": 0.6286340003498481,
+      "max": 2.371497999774874,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 2.697101200101315,
+      "std": 1.633857115706064,
+      "min": 0.722170000699407,
+      "max": 5.120159999933094,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 12500,
+      "std": 0.0,
+      "min": 12500,
+      "max": 12500,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.333033412196235,
+      "std": 0.00021139106977737464,
+      "min": 8.332710525161442,
+      "max": 8.33322660247831,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 1.2685144996643065,
+      "std": 0.31917632337976987,
+      "min": 0.7487677192687988,
+      "max": 1.5754565238952636,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 0.6875038146972656,
+      "std": 0.1767587654668238,
+      "min": 0.3993511199951172,
+      "max": 0.8392333984375,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 8.558225631713867,
+      "std": 1.0868000890856349,
+      "min": 7.513761520385742,
+      "max": 10.023117065429688,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 16.931486129760742,
+      "std": 4.015614452441585,
+      "min": 13.727426528930664,
+      "max": 23.726701736450195,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 12500,
+      "std": 0.0,
+      "min": 12500,
+      "max": 12500,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 12015.4,
+      "std": 22.040871126160145,
+      "min": 12000,
+      "max": 12050,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 12500,
+      "std": 0.0,
+      "min": 12500,
+      "max": 12500,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.332757202556461,
+      "std": 0.0005192492639599977,
+      "min": 8.332058409803784,
+      "max": 8.33332833833635,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.8234730538923,
+      "std": 0.08275944117191342,
+      "min": 567.7415568862275,
+      "max": 567.9428143712574,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 2.7614101447457946,
+      "std": 0.20333353237391086,
+      "min": 2.5342409858264996,
+      "max": 2.968395153681437,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 2.478170394897461,
+      "std": 0.24919597252941894,
+      "min": 2.1712779998779297,
+      "max": 2.755880355834961,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 8.912992477416992,
+      "std": 0.9607403973031118,
+      "min": 7.487058639526367,
+      "max": 9.920835494995117,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 14.914464950561523,
+      "std": 2.7677122404157957,
+      "min": 12.578010559082031,
+      "max": 19.482135772705078,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 12015.4,
+      "std": 22.040871126160145,
+      "min": 12000,
+      "max": 12050,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "mission_dt",
+    "n_agents": 100,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.000805202800073,
+      "std": 0.0008699313399158055,
+      "min": 30.00036513499981,
+      "max": 30.002359459000218,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 3.54,
+      "std": 0.32771939216347873,
+      "min": 3.21,
+      "max": 4.09,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 11.7996863824356,
+      "std": 1.0924250440772463,
+      "min": 10.69984187773675,
+      "max": 13.633167401780778,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 27.38125,
+      "std": 0.09458450204628531,
+      "min": 27.27734375,
+      "max": 27.53125,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 27.38125,
+      "std": 0.09458450204628531,
+      "min": 27.27734375,
+      "max": 27.53125,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 3,
+      "std": 0.0,
+      "min": 3,
+      "max": 3,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 6.344,
+      "std": 0.48200622402620513,
+      "min": 5.66,
+      "max": 7.000000000000001,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 21.146097219913468,
+      "std": 1.6066338648345324,
+      "min": 18.86638785918692,
+      "max": 23.33304934290109,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 75.14453125,
+      "std": 0.14032628864598481,
+      "min": 74.9921875,
+      "max": 75.36328125,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 75.14453125,
+      "std": 0.14032628864598481,
+      "min": 74.9921875,
+      "max": 75.36328125,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 202,
+      "std": 0.0,
+      "min": 202,
+      "max": 202,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.cpu_s": {
+      "mean": 0.722,
+      "std": 0.06833739825307954,
+      "min": 0.64,
+      "max": 0.83,
+      "n": 5
+     },
+     "processes.broker.cpu_pct": {
+      "mean": 2.406602340074508,
+      "std": 0.22779184377343178,
+      "min": 2.1333018073992274,
+      "max": 2.7666329935154144,
+      "n": 5
+     },
+     "processes.broker.peak_rss_mib": {
+      "mean": 7.6046875,
+      "std": 0.028222487294044443,
+      "min": 7.57421875,
+      "max": 7.63671875,
+      "n": 5
+     },
+     "processes.broker.rss_end_mib": {
+      "mean": 7.6046875,
+      "std": 0.028222487294044443,
+      "min": 7.57421875,
+      "max": 7.63671875,
+      "n": 5
+     },
+     "processes.broker.threads": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.broker.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 35.352385942423574,
+      "std": 2.883904912974003,
+      "min": 31.699531544322895,
+      "max": 39.73284973819728,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 110.13046875,
+      "std": 0.2197695270494325,
+      "min": 109.94140625,
+      "max": 110.484375,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 110.13046875,
+      "std": 0.2197695270494325,
+      "min": 109.94140625,
+      "max": 110.484375,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 304,
+      "std": 0.0,
+      "min": 304,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 10.770961600833667,
+      "std": 1.4240390556556402,
+      "min": 8.401205562480149,
+      "max": 11.925496187510968,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 9.446769800160837,
+      "std": 2.2113533542229904,
+      "min": 6.076070000744949,
+      "max": 11.312286999782373,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 33.780339999793796,
+      "std": 4.150265923383005,
+      "min": 29.804906999743253,
+      "max": 38.65775499980373,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 42.22268699977576,
+      "std": 6.693532953867669,
+      "min": 32.36017700055527,
+      "max": 49.04251899915835,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 0.2891908646290206,
+      "std": 0.1332330383305325,
+      "min": 0.15396170919834787,
+      "max": 0.511147545720784,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 0.08161119985743426,
+      "std": 0.01379203002538895,
+      "min": 0.07132100017770426,
+      "max": 0.10557299992797198,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 4.244892199676542,
+      "std": 2.467501396515145,
+      "min": 0.9245069995813537,
+      "max": 7.8815259994371445,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 13.123740399987582,
+      "std": 15.798102881399736,
+      "min": 2.945853000255738,
+      "max": 41.153211999699124,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.332525790873317,
+      "std": 0.000599396341056079,
+      "min": 8.332038354878746,
+      "max": 8.333184995140565,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 3.5189245204925537,
+      "std": 0.7054439770285965,
+      "min": 2.311068544387817,
+      "max": 4.027288465499878,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 1.5170097351074219,
+      "std": 0.7764715061040995,
+      "min": 0.40984153747558594,
+      "max": 2.585887908935547,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 23.497819900512695,
+      "std": 1.8494174593183326,
+      "min": 21.286725997924805,
+      "max": 25.464296340942383,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 36.612796783447266,
+      "std": 3.0512157923697045,
+      "min": 32.64498710632324,
+      "max": 41.19753837585449,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 24000,
+      "std": 0.0,
+      "min": 24000,
+      "max": 24000,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.332784439464216,
+      "std": 0.00025060076736742955,
+      "min": 8.33251898236567,
+      "max": 8.333189568591374,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.5514931365382,
+      "std": 0.067142729205668,
+      "min": 567.4415568862275,
+      "max": 567.6115375389782,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 5.56509117881457,
+      "std": 0.40484332747879626,
+      "min": 5.18211508790652,
+      "max": 6.250390022993088,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 5.019474029541016,
+      "std": 0.3299555247586721,
+      "min": 4.665613174438477,
+      "max": 5.543708801269531,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 17.88921356201172,
+      "std": 1.853723666959331,
+      "min": 15.205144882202148,
+      "max": 19.912004470825195,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 32.39402770996094,
+      "std": 7.471636188569971,
+      "min": 24.67799186706543,
+      "max": 43.57314109802246,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 24000,
+      "std": 0.0,
+      "min": 24000,
+      "max": 24000,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "ros2",
+    "n_agents": 10,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.000622983799985,
+      "std": 0.000374595211113336,
+      "min": 30.000342246999935,
+      "max": 30.001248218,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 1.282,
+      "std": 0.11691877522451227,
+      "min": 1.1099999999999999,
+      "max": 1.37,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 4.273247046667084,
+      "std": 0.38975468890264997,
+      "min": 3.69991631529277,
+      "max": 4.566612176784611,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 69.6015625,
+      "std": 0.05405606446522675,
+      "min": 69.5390625,
+      "max": 69.6484375,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 69.6015625,
+      "std": 0.05405606446522675,
+      "min": 69.5390625,
+      "max": 69.6484375,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 15,
+      "std": 0.0,
+      "min": 15,
+      "max": 15,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 1.052,
+      "std": 0.0549545266561364,
+      "min": 1.0099999999999998,
+      "max": 1.1400000000000001,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 3.5065950730641817,
+      "std": 0.1832078194789726,
+      "min": 3.3665265946968996,
+      "max": 3.799956649207898,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 74.2453125,
+      "std": 0.025073135212314395,
+      "min": 74.2109375,
+      "max": 74.28125,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 74.2453125,
+      "std": 0.025073135212314395,
+      "min": 74.2109375,
+      "max": 74.28125,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 26,
+      "std": 0.0,
+      "min": 26,
+      "max": 26,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 7.779842119731265,
+      "std": 0.5289969265100188,
+      "min": 7.066506836415022,
+      "max": 8.333238265806793,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 143.846875,
+      "std": 0.07408499460606885,
+      "min": 143.7578125,
+      "max": 143.9296875,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 143.846875,
+      "std": 0.07408499460606885,
+      "min": 143.7578125,
+      "max": 143.9296875,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 304,
+      "std": 0.0,
+      "min": 304,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 1.814181953640234,
+      "std": 0.14094406021552047,
+      "min": 1.6402940166737305,
+      "max": 1.9717246514383493,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 1.5804717999344575,
+      "std": 0.08945049132913618,
+      "min": 1.4615130003221566,
+      "max": 1.6870449999260018,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 5.664575599985255,
+      "std": 1.2471855889203174,
+      "min": 4.377514999760024,
+      "max": 7.151401000555779,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 7.574287199622631,
+      "std": 2.6128268217858763,
+      "min": 5.465899999762769,
+      "max": 12.049190999277926,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 0.43975629379563413,
+      "std": 0.06303436379057187,
+      "min": 0.37547418252334674,
+      "max": 0.532155762327117,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 0.4007689998616115,
+      "std": 0.04302070974172479,
+      "min": 0.34819099982996704,
+      "max": 0.46442999973805854,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 1.132150600096793,
+      "std": 1.056206741780197,
+      "min": 0.5397160002758028,
+      "max": 3.0123189999358146,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 6.722216599882813,
+      "std": 12.787533199239652,
+      "min": 0.6719279999742866,
+      "max": 29.592269999739074,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.6,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.332559576656932,
+      "std": 0.00038972174381141257,
+      "min": 8.332231806178257,
+      "max": 8.333218717409618,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 0.7154061508178711,
+      "std": 0.10126554818325692,
+      "min": 0.5864985466003418,
+      "max": 0.8282464027404786,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 0.6328582763671875,
+      "std": 0.12582116693616996,
+      "min": 0.5021095275878906,
+      "max": 0.7939338684082031,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 2.2010326385498047,
+      "std": 0.30570902839467057,
+      "min": 1.955270767211914,
+      "max": 2.7277469635009766,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 6.223297119140625,
+      "std": 3.3279955763684415,
+      "min": 3.415346145629883,
+      "max": 11.580705642700195,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 2400,
+      "std": 0.0,
+      "min": 2400,
+      "max": 2400,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 2500,
+      "std": 0.0,
+      "min": 2500,
+      "max": 2500,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.333089866920373,
+      "std": 3.822917733361371e-05,
+      "min": 8.333026913212235,
+      "max": 8.333131297120435,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.7726946107784,
+      "std": 0.2281687988156625,
+      "min": 567.5511976047904,
+      "max": 568.0910179640719,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 1.062467853228251,
+      "std": 0.059809338499054204,
+      "min": 1.0102697213490803,
+      "max": 1.143251856168111,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 1.040506362915039,
+      "std": 0.05897581268570102,
+      "min": 0.9787082672119141,
+      "max": 1.1348724365234375,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 2.266216278076172,
+      "std": 0.2628277689415666,
+      "min": 1.9657611846923828,
+      "max": 2.6102066040039062,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 5.837154388427734,
+      "std": 3.6376723804844646,
+      "min": 2.9222965240478516,
+      "max": 12.134552001953125,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 2400,
+      "std": 0.0,
+      "min": 2400,
+      "max": 2400,
+      "n": 5
+     },
+     "agents.discovery_s": {
+      "mean": 0.320935487999941,
+      "std": 0.11018437893086418,
+      "min": 0.200233816999571,
+      "max": 0.40320627100027195,
+      "n": 5
+     },
+     "agents.matched_agents": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "ros2",
+    "n_agents": 50,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.000666276799894,
+      "std": 0.0005404398586248354,
+      "min": 30.000248253999416,
+      "max": 30.00147573599952,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 5.788,
+      "std": 1.1327709388927665,
+      "min": 4.92,
+      "max": 7.72,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 19.2928797417279,
+      "std": 3.7756423096559146,
+      "min": 16.399824303762117,
+      "max": 25.732498414116368,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 75.2984375,
+      "std": 0.11930380730513172,
+      "min": 75.15625,
+      "max": 75.41796875,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 75.2984375,
+      "std": 0.11930380730513172,
+      "min": 75.15625,
+      "max": 75.41796875,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 15,
+      "std": 0.0,
+      "min": 15,
+      "max": 15,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 4.024,
+      "std": 0.07924645102463625,
+      "min": 3.9199999999999995,
+      "max": 4.140000000000001,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 13.413038507679259,
+      "std": 0.26434206589255027,
+      "min": 13.066023933270367,
+      "max": 13.799856199978448,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 97.078125,
+      "std": 0.06188663874122992,
+      "min": 97.01953125,
+      "max": 97.17578125,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 97.078125,
+      "std": 0.06188663874122992,
+      "min": 97.01953125,
+      "max": 97.17578125,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 66,
+      "std": 0.0,
+      "min": 66,
+      "max": 66,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 32.70591824940716,
+      "std": 3.6939002757568407,
+      "min": 29.799680747079947,
+      "max": 39.065399146819146,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 172.3765625,
+      "std": 0.17314868971493835,
+      "min": 172.1875,
+      "max": 172.59375,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 172.3765625,
+      "std": 0.17314868971493835,
+      "min": 172.1875,
+      "max": 172.59375,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 303.8,
+      "std": 0.4472135954999579,
+      "min": 303,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 5.8284330029870395,
+      "std": 0.5123253271494475,
+      "min": 5.2783970749942455,
+      "max": 6.4192877958513845,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 5.548781600100483,
+      "std": 0.4321975272250459,
+      "min": 5.023018999963824,
+      "max": 5.903768000280252,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 12.438066199774767,
+      "std": 5.126941964971736,
+      "min": 9.80024999989837,
+      "max": 21.589885999674152,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 16.683186200134514,
+      "std": 8.155580491110523,
+      "min": 10.379110000030778,
+      "max": 30.35326300050656,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 1.1484555647039254,
+      "std": 0.14101856792475426,
+      "min": 1.030391345765717,
+      "max": 1.371353816947855,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 0.8926940002311312,
+      "std": 0.058682579463882306,
+      "min": 0.805710999884468,
+      "max": 0.9458780004933942,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 4.342979000011837,
+      "std": 1.180260227041215,
+      "min": 3.4713019999799144,
+      "max": 6.379487000231165,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 16.539898000064568,
+      "std": 13.691814984036602,
+      "min": 5.05055000030552,
+      "max": 36.93408300023293,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 12490.6,
+      "std": 21.019038988498025,
+      "min": 12453,
+      "max": 12500,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 249.8,
+      "std": 0.4472135954999579,
+      "min": 249,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.325825476075368,
+      "std": 0.013745393946609273,
+      "min": 8.30139177943797,
+      "max": 8.333758088593424,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 2.922883871703859,
+      "std": 0.2975036018895344,
+      "min": 2.5300911839282305,
+      "max": 3.321167411804199,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 2.3176193237304688,
+      "std": 0.2335547232637312,
+      "min": 1.9364356994628906,
+      "max": 2.5327205657958984,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 11.62562370300293,
+      "std": 0.9107689519904631,
+      "min": 10.54835319519043,
+      "max": 12.784004211425781,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 36.05756759643555,
+      "std": 27.18423160900469,
+      "min": 16.94464683532715,
+      "max": 82.25655555725098,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 12490.6,
+      "std": 21.019038988498025,
+      "min": 12453,
+      "max": 12500,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 12014.2,
+      "std": 21.66102490649969,
+      "min": 12000,
+      "max": 12049,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 240,
+      "std": 0.0,
+      "min": 240,
+      "max": 240,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240.4,
+      "std": 0.5477225575051661,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 12493,
+      "std": 15.652475842498529,
+      "min": 12465,
+      "max": 12500,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.3280778145433,
+      "std": 0.010324104902698888,
+      "min": 8.309642190408153,
+      "max": 8.33333819916946,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.7934872626357,
+      "std": 0.052792997989157577,
+      "min": 567.738799712506,
+      "max": 567.8646246246246,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 4.617096164279352,
+      "std": 0.16742456502929928,
+      "min": 4.457163072659352,
+      "max": 4.89790047728228,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 4.470682144165039,
+      "std": 0.16646898423464582,
+      "min": 4.292011260986328,
+      "max": 4.7092437744140625,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 11.902523040771484,
+      "std": 1.0477870840023802,
+      "min": 10.761499404907227,
+      "max": 13.356924057006836,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 22.56159782409668,
+      "std": 9.843597518185241,
+      "min": 16.31784439086914,
+      "max": 39.5512580871582,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 12014.2,
+      "std": 21.66102490649969,
+      "min": 12000,
+      "max": 12049,
+      "n": 5
+     },
+     "agents.discovery_s": {
+      "mean": 0.24066585879982086,
+      "std": 0.08970919519920856,
+      "min": 0.20048111100004462,
+      "max": 0.4011425090002376,
+      "n": 5
+     },
+     "agents.matched_agents": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "ros2",
+    "n_agents": 100,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.000278064399936,
+      "std": 2.5545227397583856e-05,
+      "min": 30.00025050199929,
+      "max": 30.000316470999678,
+      "n": 5
+     },
+     "processes.core.cpu_s": {
+      "mean": 8.620000000000001,
+      "std": 0.6232976816898973,
+      "min": 7.990000000000001,
+      "max": 9.350000000000001,
+      "n": 5
+     },
+     "processes.core.cpu_pct": {
+      "mean": 28.73306569386157,
+      "std": 2.0776165517859893,
+      "min": 26.633101579185922,
+      "max": 31.166337891929704,
+      "n": 5
+     },
+     "processes.core.peak_rss_mib": {
+      "mean": 82.41953125,
+      "std": 0.174596703259433,
+      "min": 82.2265625,
+      "max": 82.609375,
+      "n": 5
+     },
+     "processes.core.rss_end_mib": {
+      "mean": 82.41953125,
+      "std": 0.174596703259433,
+      "min": 82.2265625,
+      "max": 82.609375,
+      "n": 5
+     },
+     "processes.core.threads": {
+      "mean": 15,
+      "std": 0.0,
+      "min": 15,
+      "max": 15,
+      "n": 5
+     },
+     "processes.core.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "processes.agents.cpu_s": {
+      "mean": 6.912,
+      "std": 0.23015212360523643,
+      "min": 6.699999999999999,
+      "max": 7.28,
+      "n": 5
+     },
+     "processes.agents.cpu_pct": {
+      "mean": 23.039785990332252,
+      "std": 0.7671488964998067,
+      "min": 22.333128345736593,
+      "max": 24.266410679491788,
+      "n": 5
+     },
+     "processes.agents.peak_rss_mib": {
+      "mean": 125.3359375,
+      "std": 0.04428040644044779,
+      "min": 125.28125,
+      "max": 125.40234375,
+      "n": 5
+     },
+     "processes.agents.rss_end_mib": {
+      "mean": 125.3359375,
+      "std": 0.04428040644044779,
+      "min": 125.28125,
+      "max": 125.40234375,
+      "n": 5
+     },
+     "processes.agents.threads": {
+      "mean": 116,
+      "std": 0.0,
+      "min": 116,
+      "max": 116,
+      "n": 5
+     },
+     "processes.agents.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 51.77285168419382,
+      "std": 2.7276087244410747,
+      "min": 49.39957013811457,
+      "max": 55.43274857142149,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 207.75546875,
+      "std": 0.16225285442645146,
+      "min": 207.55859375,
+      "max": 207.9453125,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 207.75546875,
+      "std": 0.16225285442645146,
+      "min": 207.55859375,
+      "max": 207.9453125,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0066666086556159965,
+      "std": 0.014906990133345854,
+      "min": 0.0,
+      "max": 0.03333304327807998,
+      "n": 5
+     },
+     "mission.frames": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.overruns": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frames_run": {
+      "mean": 304,
+      "std": 0.0,
+      "min": 304,
+      "max": 304,
+      "n": 5
+     },
+     "mission.overruns_run": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "mission.frame_ms.mean": {
+      "mean": 8.986146737422398,
+      "std": 0.5338785719080559,
+      "min": 8.201417099598041,
+      "max": 9.660560658316323,
+      "n": 5
+     },
+     "mission.frame_ms.p50": {
+      "mean": 8.564591800131893,
+      "std": 0.4779818800133171,
+      "min": 7.981746000041312,
+      "max": 9.269918999962101,
+      "n": 5
+     },
+     "mission.frame_ms.p99": {
+      "mean": 19.779525200283388,
+      "std": 3.4906996664116288,
+      "min": 15.754108000692213,
+      "max": 25.216707000254246,
+      "n": 5
+     },
+     "mission.frame_ms.max": {
+      "mean": 22.84210620000522,
+      "std": 5.528271480083811,
+      "min": 18.80500000061147,
+      "max": 31.852374999289168,
+      "n": 5
+     },
+     "mission.frame_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.release_jitter_ms.mean": {
+      "mean": 2.7785057083877307,
+      "std": 0.17264672381645188,
+      "min": 2.573109170744677,
+      "max": 3.0082258123305414,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p50": {
+      "mean": 1.9948929999372922,
+      "std": 0.08392221948039129,
+      "min": 1.9189399999959278,
+      "max": 2.114922999680857,
+      "n": 5
+     },
+     "mission.release_jitter_ms.p99": {
+      "mean": 11.030967400074587,
+      "std": 1.3895307155226475,
+      "min": 9.089987000152178,
+      "max": 12.373499000204902,
+      "n": 5
+     },
+     "mission.release_jitter_ms.max": {
+      "mean": 13.296188000094844,
+      "std": 2.419237613318944,
+      "min": 9.933753000041179,
+      "max": 15.90443600071012,
+      "n": 5
+     },
+     "mission.release_jitter_ms.n": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "mission.telemetry_msgs": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "mission.telemetry_agents_received": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     },
+     "mission.telemetry_min_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_max_per_agent": {
+      "mean": 250,
+      "std": 0.0,
+      "min": 250,
+      "max": 250,
+      "n": 5
+     },
+     "mission.telemetry_rate_hz_per_agent": {
+      "mean": 8.333055163970698,
+      "std": 0.0007026622152119595,
+      "min": 8.331862301107227,
+      "max": 8.33373513687255,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.mean": {
+      "mean": 9.858529808044434,
+      "std": 0.9498425909127587,
+      "min": 8.800251951217652,
+      "max": 11.178156108856202,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p50": {
+      "mean": 8.16946029663086,
+      "std": 0.9325783849662311,
+      "min": 6.844520568847656,
+      "max": 9.293794631958008,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.p99": {
+      "mean": 31.693029403686523,
+      "std": 4.795371707541593,
+      "min": 26.585102081298828,
+      "max": 37.20545768737793,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.max": {
+      "mean": 49.08175468444824,
+      "std": 7.213966233411203,
+      "min": 37.44339942932129,
+      "max": 55.47976493835449,
+      "n": 5
+     },
+     "mission.telemetry_lat_ms.n": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "agents.actuation_msgs": {
+      "mean": 24000,
+      "std": 0.7071067811865476,
+      "min": 23999,
+      "max": 24001,
+      "n": 5
+     },
+     "agents.actuation_agents_received": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     },
+     "agents.actuation_min_per_agent": {
+      "mean": 239.8,
+      "std": 0.4472135954999579,
+      "min": 239,
+      "max": 240,
+      "n": 5
+     },
+     "agents.actuation_max_per_agent": {
+      "mean": 240.2,
+      "std": 0.4472135954999579,
+      "min": 240,
+      "max": 241,
+      "n": 5
+     },
+     "agents.telemetry_sent": {
+      "mean": 25000,
+      "std": 0.0,
+      "min": 25000,
+      "max": 25000,
+      "n": 5
+     },
+     "agents.telemetry_rate_hz_per_agent": {
+      "mean": 8.333208220820174,
+      "std": 0.0009935734431924526,
+      "min": 8.331780888152963,
+      "max": 8.334590034209283,
+      "n": 5
+     },
+     "agents.telemetry_bytes_mean": {
+      "mean": 567.5204344245681,
+      "std": 0.013547148505656229,
+      "min": 567.5068263473054,
+      "max": 567.5403390033541,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.mean": {
+      "mean": 11.108659296209293,
+      "std": 0.8443951011686766,
+      "min": 10.449959310950216,
+      "max": 12.520088901122412,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p50": {
+      "mean": 10.720348358154297,
+      "std": 0.7130947170392712,
+      "min": 10.09511947631836,
+      "max": 11.854410171508789,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.p99": {
+      "mean": 24.60341453552246,
+      "std": 4.249410959529023,
+      "min": 21.55590057373047,
+      "max": 31.671762466430664,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.max": {
+      "mean": 35.58850288391113,
+      "std": 3.62009365459863,
+      "min": 30.073165893554688,
+      "max": 39.11876678466797,
+      "n": 5
+     },
+     "agents.actuation_lat_ms.n": {
+      "mean": 24000,
+      "std": 0.7071067811865476,
+      "min": 23999,
+      "max": 24001,
+      "n": 5
+     },
+     "agents.discovery_s": {
+      "mean": 0.281238674800079,
+      "std": 0.11014960453239778,
+      "min": 0.2007868930004406,
+      "max": 0.4022954520005442,
+      "n": 5
+     },
+     "agents.matched_agents": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "gazebo",
+    "n_agents": 10,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.00177114540029,
+      "std": 0.00044137888368425406,
+      "min": 30.001266380000743,
+      "max": 30.00227410000025,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_s": {
+      "mean": 14.21,
+      "std": 0.24748737341529203,
+      "min": 14.029999999999998,
+      "max": 14.64,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_pct": {
+      "mean": 47.36386896730594,
+      "std": 0.8248048905966151,
+      "min": 46.764692604284825,
+      "max": 48.79692882052025,
+      "n": 5
+     },
+     "processes.gz_sim.peak_rss_mib": {
+      "mean": 146.56484375,
+      "std": 0.09945990623974442,
+      "min": 146.43359375,
+      "max": 146.66015625,
+      "n": 5
+     },
+     "processes.gz_sim.rss_end_mib": {
+      "mean": 146.56484375,
+      "std": 0.09945990623974442,
+      "min": 146.43359375,
+      "max": 146.66015625,
+      "n": 5
+     },
+     "processes.gz_sim.threads": {
+      "mean": 28,
+      "std": 0.0,
+      "min": 28,
+      "max": 28,
+      "n": 5
+     },
+     "processes.gz_sim.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 47.36386896730594,
+      "std": 0.8248048905966151,
+      "min": 46.764692604284825,
+      "max": 48.79692882052025,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 146.56484375,
+      "std": 0.09945990623974442,
+      "min": 146.43359375,
+      "max": 146.66015625,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 146.56484375,
+      "std": 0.09945990623974442,
+      "min": 146.43359375,
+      "max": 146.66015625,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+     },
+     "monitor.cpu_s": {
+      "mean": 0.622,
+      "std": 0.029495762407505278,
+      "min": 0.58,
+      "max": 0.65,
+      "n": 5
+     },
+     "monitor.cpu_pct": {
+      "mean": 2.0732114848818712,
+      "std": 0.098327135443128,
+      "min": 1.9331867913305782,
+      "max": 2.1665685094859044,
+      "n": 5
+     },
+     "monitor.peak_rss_mib": {
+      "mean": 29.0515625,
+      "std": 0.0725238208442147,
+      "min": 28.9453125,
+      "max": 29.1171875,
+      "n": 5
+     },
+     "monitor.rss_end_mib": {
+      "mean": 29.0515625,
+      "std": 0.0725238208442147,
+      "min": 28.9453125,
+      "max": 29.1171875,
+      "n": 5
+     },
+     "monitor.threads": {
+      "mean": 8,
+      "std": 0.0,
+      "min": 8,
+      "max": 8,
+      "n": 5
+     },
+     "monitor.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "gazebo.rtf": {
+      "mean": 0.998947397200928,
+      "std": 0.0004291143905792281,
+      "min": 0.998245080846385,
+      "max": 0.9994003028707754,
+      "n": 5
+     },
+     "gazebo.rtf_stats_mean": {
+      "mean": 1.0048030097830896,
+      "std": 0.008736903690604536,
+      "min": 0.9961082320622026,
+      "max": 1.0182741497416081,
+      "n": 5
+     },
+     "gazebo.rtf_stats_min": {
+      "mean": 0.44580022152615517,
+      "std": 0.22475734454490148,
+      "min": 0.04666160046116593,
+      "max": 0.5737731725467897,
+      "n": 5
+     },
+     "gazebo.sim_s": {
+      "mean": 29.9474,
+      "std": 0.010830512453250453,
+      "min": 29.936999999999998,
+      "max": 29.96,
+      "n": 5
+     },
+     "gazebo.real_s": {
+      "mean": 29.9789578256,
+      "std": 0.0096700875688205,
+      "min": 29.965384005000004,
+      "max": 29.989629375,
+      "n": 5
+     },
+     "gazebo.steps_per_s": {
+      "mean": 998.947397200928,
+      "std": 0.42911439057918904,
+      "min": 998.2450808463851,
+      "max": 999.4003028707755,
+      "n": 5
+     },
+     "gazebo.step_ms": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+     },
+     "gazebo.startup_s": {
+      "mean": 2.2016011087999687,
+      "std": 0.0002857993710975741,
+      "min": 2.2011638989997664,
+      "max": 2.2018819080003595,
+      "n": 5
+     },
+     "gazebo.odom_connect_s": {
+      "mean": 0.2001281567998376,
+      "std": 5.694579577844305e-05,
+      "min": 0.20009512800061202,
+      "max": 0.20022961499944358,
+      "n": 5
+     },
+     "gazebo.odom_subscriptions_renewed": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "gazebo.odom_msgs": {
+      "mean": 2480,
+      "std": 0.0,
+      "min": 2480,
+      "max": 2480,
+      "n": 5
+     },
+     "gazebo.odom_models_received": {
+      "mean": 10,
+      "std": 0.0,
+      "min": 10,
+      "max": 10,
+      "n": 5
+     },
+     "gazebo.odom_min_per_model": {
+      "mean": 248,
+      "std": 0.0,
+      "min": 248,
+      "max": 248,
+      "n": 5
+     },
+     "gazebo.odom_max_per_model": {
+      "mean": 248,
+      "std": 0.0,
+      "min": 248,
+      "max": 248,
+      "n": 5
+     },
+     "gazebo.odom_rate_hz_per_model": {
+      "mean": 8.266241996504457,
+      "std": 0.00010547305047305386,
+      "min": 8.266100631373675,
+      "max": 8.266334923491195,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "gazebo",
+    "n_agents": 50,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.001576905,
+      "std": 0.00065806528555335,
+      "min": 30.00116496999999,
+      "max": 30.00274536300003,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_s": {
+      "mean": 29.166,
+      "std": 0.02792848008753767,
+      "min": 29.12,
+      "max": 29.19,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_pct": {
+      "mean": 97.21488967723283,
+      "std": 0.09258443536569619,
+      "min": 97.06223091624506,
+      "max": 97.29564839050306,
+      "n": 5
+     },
+     "processes.gz_sim.peak_rss_mib": {
+      "mean": 263.25859375,
+      "std": 0.17568139524923734,
+      "min": 263.1171875,
+      "max": 263.48046875,
+      "n": 5
+     },
+     "processes.gz_sim.rss_end_mib": {
+      "mean": 263.25859375,
+      "std": 0.17568139524923734,
+      "min": 263.1171875,
+      "max": 263.48046875,
+      "n": 5
+     },
+     "processes.gz_sim.threads": {
+      "mean": 108,
+      "std": 0.0,
+      "min": 108,
+      "max": 108,
+      "n": 5
+     },
+     "processes.gz_sim.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 97.21488967723283,
+      "std": 0.09258443536569619,
+      "min": 97.06223091624506,
+      "max": 97.29564839050306,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 263.25859375,
+      "std": 0.17568139524923734,
+      "min": 263.1171875,
+      "max": 263.48046875,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 263.25859375,
+      "std": 0.17568139524923734,
+      "min": 263.1171875,
+      "max": 263.48046875,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.006666056641824647,
+      "std": 0.014905755792983878,
+      "min": 0.0,
+      "max": 0.033330283209123235,
+      "n": 5
+     },
+     "monitor.cpu_s": {
+      "mean": 0.8160000000000001,
+      "std": 0.005477225575051626,
+      "min": 0.81,
+      "max": 0.8200000000000001,
+      "n": 5
+     },
+     "monitor.cpu_pct": {
+      "mean": 2.7198569134984223,
+      "std": 0.01823381554522802,
+      "min": 2.6998792461907324,
+      "max": 2.733227195743793,
+      "n": 5
+     },
+     "monitor.peak_rss_mib": {
+      "mean": 29.303125,
+      "std": 0.0633848496105832,
+      "min": 29.234375,
+      "max": 29.3671875,
+      "n": 5
+     },
+     "monitor.rss_end_mib": {
+      "mean": 29.303125,
+      "std": 0.0633848496105832,
+      "min": 29.234375,
+      "max": 29.3671875,
+      "n": 5
+     },
+     "monitor.threads": {
+      "mean": 8,
+      "std": 0.0,
+      "min": 8,
+      "max": 8,
+      "n": 5
+     },
+     "monitor.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "gazebo.rtf": {
+      "mean": 0.7435702279012895,
+      "std": 0.013709332005111036,
+      "min": 0.7229443322953206,
+      "max": 0.7597116239912323,
+      "n": 5
+     },
+     "gazebo.rtf_stats_mean": {
+      "mean": 0.7564936846112758,
+      "std": 0.01436656533745034,
+      "min": 0.7370237882583037,
+      "max": 0.7771197543540683,
+      "n": 5
+     },
+     "gazebo.rtf_stats_min": {
+      "mean": 0.19214860817139118,
+      "std": 0.02113697744872598,
+      "min": 0.16380577156531648,
+      "max": 0.21766996922799645,
+      "n": 5
+     },
+     "gazebo.sim_s": {
+      "mean": 22.3142,
+      "std": 0.4053445448010868,
+      "min": 21.706,
+      "max": 22.792,
+      "n": 5
+     },
+     "gazebo.real_s": {
+      "mean": 30.0096626598,
+      "std": 0.013308135025850125,
+      "min": 29.991893366,
+      "max": 30.024441759000002,
+      "n": 5
+     },
+     "gazebo.steps_per_s": {
+      "mean": 743.5702279012895,
+      "std": 13.709332005111028,
+      "min": 722.9443322953207,
+      "max": 759.7116239912323,
+      "n": 5
+     },
+     "gazebo.step_ms": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+     },
+     "gazebo.startup_s": {
+      "mean": 2.202660709999691,
+      "std": 0.0015365816230071918,
+      "min": 2.2012383009996483,
+      "max": 2.2045176869996794,
+      "n": 5
+     },
+     "gazebo.odom_connect_s": {
+      "mean": 0.20026644640011,
+      "std": 0.0002012076869088154,
+      "min": 0.20010383899989392,
+      "max": 0.20057971000005637,
+      "n": 5
+     },
+     "gazebo.odom_subscriptions_renewed": {
+      "mean": 0,
+      "std": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 5
+     },
+     "gazebo.odom_msgs": {
+      "mean": 9220,
+      "std": 182.3458252881047,
+      "min": 8950,
+      "max": 9450,
+      "n": 5
+     },
+     "gazebo.odom_models_received": {
+      "mean": 50,
+      "std": 0.0,
+      "min": 50,
+      "max": 50,
+      "n": 5
+     },
+     "gazebo.odom_min_per_model": {
+      "mean": 184.4,
+      "std": 3.646916505762094,
+      "min": 179,
+      "max": 189,
+      "n": 5
+     },
+     "gazebo.odom_max_per_model": {
+      "mean": 184.4,
+      "std": 3.646916505762094,
+      "min": 179,
+      "max": 189,
+      "n": 5
+     },
+     "gazebo.odom_rate_hz_per_model": {
+      "mean": 6.146313747565391,
+      "std": 0.12151747062945464,
+      "min": 5.966391311542371,
+      "max": 6.299518396149071,
+      "n": 5
+     }
+    }
+   },
+   {
+    "stack": "gazebo",
+    "n_agents": 100,
+    "reps": [
+     "rep1",
+     "rep2",
+     "rep3",
+     "rep4",
+     "rep5"
+    ],
+    "n_reps": 5,
+    "metrics": {
+     "window_s": {
+      "mean": 30.00179898360002,
+      "std": 0.0006241849910333712,
+      "min": 30.00117521700031,
+      "max": 30.002479118999872,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_s": {
+      "mean": 29.16,
+      "std": 0.015811388300840997,
+      "min": 29.14,
+      "max": 29.18,
+      "n": 5
+     },
+     "processes.gz_sim.cpu_pct": {
+      "mean": 97.19417108170357,
+      "std": 0.051351903745052725,
+      "min": 97.12783947192409,
+      "max": 97.25884881236504,
+      "n": 5
+     },
+     "processes.gz_sim.peak_rss_mib": {
+      "mean": 409.6578125,
+      "std": 0.30818059763995326,
+      "min": 409.203125,
+      "max": 410.0703125,
+      "n": 5
+     },
+     "processes.gz_sim.rss_end_mib": {
+      "mean": 409.6578125,
+      "std": 0.30818059763995326,
+      "min": 409.203125,
+      "max": 410.0703125,
+      "n": 5
+     },
+     "processes.gz_sim.threads": {
+      "mean": 208,
+      "std": 0.0,
+      "min": 208,
+      "max": 208,
+      "n": 5
+     },
+     "processes.gz_sim.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "total.cpu_pct": {
+      "mean": 97.19417108170357,
+      "std": 0.051351903745052725,
+      "min": 97.12783947192409,
+      "max": 97.25884881236504,
+      "n": 5
+     },
+     "total.peak_rss_mib": {
+      "mean": 409.6578125,
+      "std": 0.30818059763995326,
+      "min": 409.203125,
+      "max": 410.0703125,
+      "n": 5
+     },
+     "total.rss_end_mib": {
+      "mean": 409.6578125,
+      "std": 0.30818059763995326,
+      "min": 409.203125,
+      "max": 410.0703125,
+      "n": 5
+     },
+     "harness_cpu_pct": {
+      "mean": 0.006666392849469074,
+      "std": 0.014906507576131373,
+      "min": 0.0,
+      "max": 0.03333196424734537,
+      "n": 5
+     },
+     "monitor.cpu_s": {
+      "mean": 0.834,
+      "std": 0.008944271909999055,
+      "min": 0.8200000000000001,
+      "max": 0.8399999999999999,
+      "n": 5
+     },
+     "monitor.cpu_pct": {
+      "mean": 2.779833743477631,
+      "std": 0.029863254459588033,
+      "min": 2.7331074767108596,
+      "max": 2.7998903173766667,
+      "n": 5
+     },
+     "monitor.peak_rss_mib": {
+      "mean": 29.6046875,
+      "std": 0.04803258171543562,
+      "min": 29.53515625,
+      "max": 29.64453125,
+      "n": 5
+     },
+     "monitor.rss_end_mib": {
+      "mean": 29.6046875,
+      "std": 0.04803258171543562,
+      "min": 29.53515625,
+      "max": 29.64453125,
+      "n": 5
+     },
+     "monitor.threads": {
+      "mean": 8,
+      "std": 0.0,
+      "min": 8,
+      "max": 8,
+      "n": 5
+     },
+     "monitor.n_processes": {
+      "mean": 1,
+      "std": 0.0,
+      "min": 1,
+      "max": 1,
+      "n": 5
+     },
+     "gazebo.rtf": {
+      "mean": 0.32854056064657317,
+      "std": 0.005964830566414523,
+      "min": 0.3202530225306183,
+      "max": 0.33387238973088895,
+      "n": 5
+     },
+     "gazebo.rtf_stats_mean": {
+      "mean": 0.3336337539710557,
+      "std": 0.008962517515781806,
+      "min": 0.32011322542209797,
+      "max": 0.343991693591487,
+      "n": 5
+     },
+     "gazebo.rtf_stats_min": {
+      "mean": 0.09465524204644357,
+      "std": 0.011699425366421217,
+      "min": 0.08236616239905616,
+      "max": 0.10907366355312258,
+      "n": 5
+     },
+     "gazebo.sim_s": {
+      "mean": 9.8512,
+      "std": 0.18168846963965543,
+      "min": 9.603,
+      "max": 10.038,
+      "n": 5
+     },
+     "gazebo.real_s": {
+      "mean": 29.9846387332,
+      "std": 0.049163065821102366,
+      "min": 29.941190242000005,
+      "max": 30.065379195,
+      "n": 5
+     },
+     "gazebo.steps_per_s": {
+      "mean": 328.54056064657317,
+      "std": 5.964830566414538,
+      "min": 320.2530225306183,
+      "max": 333.872389730889,
+      "n": 5
+     },
+     "gazebo.step_ms": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+     },
+     "gazebo.startup_s": {
+      "mean": 2.205192879399874,
+      "std": 0.0028312540138439525,
+      "min": 2.201274383999589,
+      "max": 2.2087813329999335,
+      "n": 5
+     },
+     "gazebo.odom_connect_s": {
+      "mean": 1.245305577200088,
+      "std": 2.337135900995426,
+      "min": 0.2000991659997453,
+      "max": 5.426101375000144,
+      "n": 5
+     },
+     "gazebo.odom_subscriptions_renewed": {
+      "mean": 17.8,
+      "std": 39.802009999496256,
+      "min": 0,
+      "max": 89,
+      "n": 5
+     },
+     "gazebo.odom_msgs": {
+      "mean": 8140,
+      "std": 151.65750888103102,
+      "min": 7900,
+      "max": 8300,
+      "n": 5
+     },
+     "gazebo.odom_models_received": {
+      "mean": 100,
+      "std": 0.0,
+      "min": 100,
+      "max": 100,
+      "n": 5
+     },
+     "gazebo.odom_min_per_model": {
+      "mean": 81.4,
+      "std": 1.51657508881031,
+      "min": 79,
+      "max": 83,
+      "n": 5
+     },
+     "gazebo.odom_max_per_model": {
+      "mean": 81.4,
+      "std": 1.51657508881031,
+      "min": 79,
+      "max": 83,
+      "n": 5
+     },
+     "gazebo.odom_rate_hz_per_model": {
+      "mean": 2.713090396063318,
+      "std": 0.050544785590313994,
+      "min": 2.6330970431542684,
+      "max": 2.766459687345638,
       "n": 5
      }
     }
