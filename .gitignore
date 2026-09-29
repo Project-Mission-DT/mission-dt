@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 results/_partial.json
+results/**/_partial.json
 results/run*.log
 paper/*.aux
 paper/*.log

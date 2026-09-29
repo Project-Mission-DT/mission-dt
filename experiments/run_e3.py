@@ -18,6 +18,7 @@ show the twin still meets the 125 ms deadline with coordination active.
 """
 import json
 import math
+import os
 import statistics as st
 import sys
 import time
@@ -27,7 +28,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from mission_dt.core import MissionDT
 from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
 
-RES = str(Path(__file__).resolve().parent.parent / "results")
+RES = os.environ.get("MDT_RESULTS") or str(Path(__file__).resolve().parent.parent / "results")
+os.makedirs(RES, exist_ok=True)
 
 
 def pctl(v, p):
@@ -82,7 +84,6 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
 
 
 if __name__ == "__main__":
-    import os
     sizes = [int(x) for x in sys.argv[1:]] or [10, 25, 50]
     fn = f"{RES}/e3_swarm.json"
     out = json.load(open(fn)) if os.path.exists(fn) else []

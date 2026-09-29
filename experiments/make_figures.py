@@ -3,7 +3,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 plt.rcParams.update({"font.size":8,"font.family":"serif","figure.dpi":300,
                      "axes.grid":True,"grid.alpha":0.3})
-import pathlib; R=str(pathlib.Path(__file__).resolve().parent.parent/"results")
+import os, pathlib
+# MDT_RESULTS selects the results directory (run_all.sh sets it per repetition)
+R=os.environ.get("MDT_RESULTS") or str(pathlib.Path(__file__).resolve().parent.parent/"results")
 e1=json.load(open(f"{R}/e1_scalability.json"))
 N=[r["n_agents"] for r in e1]
 
@@ -51,8 +53,7 @@ fig.tight_layout();fig.savefig(f"{R}/fig_regulator.pdf");fig.savefig(f"{R}/fig_r
 print("figures ok")
 
 # Fig D: E3 swarm propagation latency CDF
-import os, pathlib
-_R = str(pathlib.Path(__file__).resolve().parent.parent/"results")
+_R = R
 if os.path.exists(f"{_R}/e3_swarm.json"):
     e3=json.load(open(f"{_R}/e3_swarm.json"))
     fig,ax=plt.subplots(figsize=(3.45,2.1))

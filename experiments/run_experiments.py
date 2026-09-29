@@ -18,7 +18,8 @@ sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.par
 from mission_dt.core import MissionDT
 from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
 
-RES = str(__import__("pathlib").Path(__file__).resolve().parent.parent / "results"); __import__("os").makedirs(RES, exist_ok=True)
+RES = __import__("os").environ.get("MDT_RESULTS") or str(__import__("pathlib").Path(__file__).resolve().parent.parent / "results")
+__import__("os").makedirs(RES, exist_ok=True)
 
 
 def pctl(v, p):

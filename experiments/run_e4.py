@@ -18,6 +18,7 @@ during stale (dead-reckoned) frames.
 import bisect
 import json
 import math
+import os
 import statistics as st
 import sys
 import time
@@ -28,7 +29,8 @@ sys.path.insert(0, str(ROOT))
 from mission_dt.core import MissionDT
 from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
 
-RES = str(ROOT / "results")
+RES = os.environ.get("MDT_RESULTS") or str(ROOT / "results")
+os.makedirs(RES, exist_ok=True)
 
 
 class LoggingDT(MissionDT):
@@ -63,13 +65,14 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e4(loss, n_agents=10, duration=30.0):
+def run_e4(loss, n_agents=10, duration=30.0, regulator=True):
     dt = LoggingDT()
     agents, goals = [], {}
     for i in range(n_agents):
         dom = "aerial" if i % 2 else "surface"
         a = VirtualAgent(f"fd{i:02d}", domain=dom,
-                         duration_s=duration + 2, loss=loss)
+                         duration_s=duration + 2, loss=loss,
+                         regulator=regulator)
         agents.append(a)
         goals[a.aid] = (BASE_LAT + 0.002 * (i % 7 - 3),
                         BASE_LON + 0.002 * (i // 7 - 3),
@@ -109,7 +112,8 @@ def run_e4(loss, n_agents=10, duration=30.0):
     lost = sum(a.lost_msgs for a in agents)
     sent = sum(a.msgs_out for a in agents)
     return {
-        "loss": loss, "n_agents": n_agents, "duration_s": duration,
+        "loss": loss, "regulator": regulator,
+        "n_agents": n_agents, "duration_s": duration,
         "samples": len(pos_err),
         "lost_msgs": lost, "sent_msgs": sent,
         "stale_pct": 100.0 * dt.stale_updates / max(1, frames_agents),
@@ -123,14 +127,16 @@ def run_e4(loss, n_agents=10, duration=30.0):
 
 
 if __name__ == "__main__":
-    import os
-    losses = [float(x) for x in sys.argv[1:]] or [0.0, 0.05, 0.10]
-    fn = f"{RES}/e4_fidelity.json"
+    # python experiments/run_e4.py [--no-regulator] [loss ...]
+    args = sys.argv[1:]
+    regulator = "--no-regulator" not in args
+    losses = [float(x) for x in args if x != "--no-regulator"] or [0.0, 0.05, 0.10]
+    fn = f"{RES}/e4_fidelity.json" if regulator else f"{RES}/e4_fidelity_noreg.json"
     out = json.load(open(fn)) if os.path.exists(fn) else []
     out = [r for r in out if r["loss"] not in losses]
     for L in losses:
-        print(f"[E4] loss={L:.0%} ...", flush=True)
-        r = run_e4(L)
+        print(f"[E4] loss={L:.0%} regulator={'ON' if regulator else 'OFF'} ...", flush=True)
+        r = run_e4(L, regulator=regulator)
         out.append(r)
         json.dump(sorted(out, key=lambda x: x["loss"]), open(fn, "w"))
         print(f"     pos RMSE={r['pos_rmse_m']:.2f} m  p99={r['pos_p99_m']:.2f} m"
