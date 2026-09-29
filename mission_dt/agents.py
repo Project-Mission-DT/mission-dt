@@ -10,6 +10,7 @@ regulator forwards only every k-th sample so that the network sees
 PUBLISH_HZ, matching the DT frame rate (Fleet-DT regulator scheme).
 """
 import json
+import socket
 import math
 import random
 import time
@@ -53,6 +54,8 @@ class VirtualAgent(threading.Thread):
                                client_id=agent_id, protocol=mqtt.MQTTv5)
         self.cli.on_message = self._on_act
         self.cli.connect(host, 1883)
+        # disable Nagle on the client socket: paho does not set TCP_NODELAY
+        self.cli.socket().setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.cli.subscribe(f"missiondt/agents/{agent_id}/actuation", qos=0)
         self.cli.publish(f"missiondt/agents/{agent_id}/register",
                          json.dumps({"domain": domain, "kind": "virtual"}),

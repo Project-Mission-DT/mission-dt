@@ -7,6 +7,7 @@ The MQTT contract (topics, QoS, payload fields) is unchanged, so the
 virtual agents, the viewer and the experiment scripts work as before.
 """
 import json
+import socket
 import threading
 import time
 from collections import defaultdict
@@ -55,6 +56,8 @@ class MissionDT:
                                client_id="mission-dt", protocol=mqtt.MQTTv5)
         self.cli.on_message = self._on_msg
         self.cli.connect(host, 1883)
+        # disable Nagle on the client socket: paho does not set TCP_NODELAY
+        self.cli.socket().setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.cli.subscribe("missiondt/agents/+/telemetry", qos=0)
         self.cli.subscribe("missiondt/agents/+/register", qos=1)
         self.cli.loop_start()

@@ -24,6 +24,11 @@ fi
 echo "Using python: $PYTHON"
 "$PYTHON" --version
 
+# 1b) pin the broker and the experiments to one core when taskset exists
+#     (Linux); the paper runs use core 0.
+PIN=""
+if command -v taskset >/dev/null 2>&1; then PIN="taskset -c 0"; fi
+
 # 2) macOS default file-descriptor limit (256) is too low for 100 agents;
 #    harmless no-op on Windows/Linux.
 ulimit -n 4096 2>/dev/null || true
@@ -36,7 +41,7 @@ broker_up() {
 if ! broker_up; then
     echo "Broker not running -- attempting to start Mosquitto..."
     if command -v mosquitto >/dev/null 2>&1; then
-        nohup mosquitto >/tmp/mosquitto_run_all.log 2>&1 &
+        nohup $PIN mosquitto -c mosquitto.conf >/tmp/mosquitto_run_all.log 2>&1 &
         sleep 2
     elif command -v brew >/dev/null 2>&1; then
         brew services start mosquitto >/dev/null 2>&1 || true
@@ -55,18 +60,20 @@ if ! broker_up; then
     fi
 fi
 echo "Broker OK."
+echo "NOTE: a broker that was already running keeps its own configuration;"
+echo "      the paper results use mosquitto.conf (set_tcp_nodelay true)."
 
 echo "== Clearing retained ghosts from the broker =="
 "$PYTHON" experiments/clear_retained.py
 
 echo "== E1 + E2 (scalability + regulators, ~6 min) =="
-"$PYTHON" experiments/run_experiments.py
+$PIN "$PYTHON" experiments/run_experiments.py
 
 echo "== E3 (swarm propagation, ~2.5 min) =="
-"$PYTHON" experiments/run_e3.py
+$PIN "$PYTHON" experiments/run_e3.py
 
 echo "== E4 (twin fidelity vs. packet loss, ~2 min) =="
-"$PYTHON" experiments/run_e4.py
+$PIN "$PYTHON" experiments/run_e4.py
 
 echo "== Figures =="
 "$PYTHON" experiments/make_figures.py
