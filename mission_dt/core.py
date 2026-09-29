@@ -7,6 +7,7 @@ The MQTT contract (topics, QoS, payload fields) is unchanged, so the
 virtual agents, the viewer and the experiment scripts work as before.
 """
 import json
+import os
 import socket
 import threading
 import time
@@ -18,6 +19,18 @@ import paho.mqtt.client as mqtt
 from . import model as md
 
 FRAME_MS = 125.0
+
+
+def _thread_cpu(native_id):
+    """CPU time (s) of one thread, from /proc (Linux); 0.0 elsewhere."""
+    if native_id is None:
+        return 0.0
+    try:
+        with open(f"/proc/self/task/{native_id}/stat") as f:
+            fields = f.read().rsplit(")", 1)[1].split()
+        return (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK")
+    except (OSError, ValueError, IndexError):
+        return 0.0
 
 
 class _AgentView:
@@ -52,6 +65,10 @@ class MissionDT:
         self.frame_overruns = self.frames = 0
         self.stale_updates = self.dup_updates = self.avoid_events = 0
         self.bytes_in = 0
+        # frame release jitter: actual start minus scheduled start (s)
+        self.release_jitter = []
+        # CPU time of the core: frame loop thread + MQTT network thread (s)
+        self.cpu_loop_s = self.cpu_net_s = 0.0
         self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
                                client_id="mission-dt", protocol=mqtt.MQTTv5)
         self.cli.on_message = self._on_msg
@@ -83,8 +100,12 @@ class MissionDT:
         goals = goals if goals is not None else {}
         t_next = time.monotonic()
         t_end = t_next + duration_s
+        cpu0 = time.thread_time()
+        net_tid = getattr(getattr(self.cli, "_thread", None), "native_id", None)
+        net0 = _thread_cpu(net_tid)
         while not self._stop.is_set() and time.monotonic() < t_end:
             t0 = time.monotonic()
+            self.release_jitter.append(t0 - t_next)
             with self._lock:
                 pending, self._pending = self._pending, defaultdict(list)
                 dom = dict(self.dom)
@@ -104,11 +125,13 @@ class MissionDT:
                     a.update(avoid=True, trig_t=M.B[j].t, trig_id=j)
                     self.avoid_events += 1
                 self.cli.publish(f"missiondt/agents/{k}/actuation", json.dumps(a), qos=0)
+            # frame time: from I^t collection to the publication of the
+            # last actuation; instrumentation hooks run after the measurement
+            work = time.monotonic() - t0
             if self.on_frame:
                 self.on_frame(M)
             if self.viz_hook:
                 self.viz_hook(M)
-            work = time.monotonic() - t0
             self.frame_compute.append(work)
             self.frames += 1
             if work > self.frame_s:
@@ -119,6 +142,8 @@ class MissionDT:
                 time.sleep(sleep)
             else:
                 t_next = time.monotonic()
+        self.cpu_loop_s = time.thread_time() - cpu0
+        self.cpu_net_s = _thread_cpu(net_tid) - net0
         self.cli.loop_stop()
         self.cli.disconnect()
 

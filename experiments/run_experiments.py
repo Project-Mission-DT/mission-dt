@@ -58,20 +58,30 @@ def run_trial(n_agents, duration=30.0, regulator=True, mix_aerial=True):
         "frames": dt.frames, "overruns": dt.frame_overruns,
         "stale_updates": dt.stale_updates, "dup_updates": dt.dup_updates,
         "frame_ms": {"mean": st.mean(dt.frame_compute) * 1e3,
+                     "std": st.pstdev(dt.frame_compute) * 1e3,
                      "p99": pctl(dt.frame_compute, 99) * 1e3,
                      "max": max(dt.frame_compute) * 1e3},
         "telemetry_lat_ms": {"mean": st.mean(lat_t) * 1e3,
+                             "std": st.pstdev(lat_t) * 1e3,
                              "p50": pctl(lat_t, 50) * 1e3,
                              "p99": pctl(lat_t, 99) * 1e3,
                              "max": max(lat_t) * 1e3, "n": len(lat_t)},
         "actuation_lat_ms": {"mean": st.mean(lat_a) * 1e3,
+                             "std": st.pstdev(lat_a) * 1e3,
                              "p99": pctl(lat_a, 99) * 1e3, "n": len(lat_a)},
         "pub_window_s": window,
         "uplink_Bps": total_bytes / window,
         "uplink_msgs_s": total_msgs / window,
         "seeded_agent_frames": seeded[0],
         "stale_pct": 100.0 * dt.stale_updates / max(1, seeded[0]),
+        "release_jitter_ms": {"mean": st.mean(dt.release_jitter) * 1e3,
+                              "std": st.pstdev(dt.release_jitter) * 1e3,
+                              "p99": pctl(dt.release_jitter, 99) * 1e3,
+                              "max": max(dt.release_jitter) * 1e3},
+        "core_cpu_s": {"loop": dt.cpu_loop_s, "net": dt.cpu_net_s},
+        "core_cpu_pct": 100.0 * (dt.cpu_loop_s + dt.cpu_net_s) / duration,
         "raw_frame_compute_ms": [x * 1e3 for x in dt.frame_compute],
+        "raw_release_jitter_ms": [x * 1e3 for x in dt.release_jitter],
         "raw_telemetry_lat_ms": [x * 1e3 for x in lat_t],
         "raw_actuation_lat_ms": [x * 1e3 for x in lat_a],
     }
@@ -88,6 +98,8 @@ if __name__ == "__main__":
             out.append(r); json.dump(out, open(f"{RES}/_partial.json","w"))
             print(f"     frames={r['frames']} overruns={r['overruns']} "
                   f"frame_p99={r['frame_ms']['p99']:.2f}ms "
+                  f"jitter_p99={r['release_jitter_ms']['p99']:.2f}ms "
+                  f"core_cpu={r['core_cpu_pct']:.1f}% "
                   f"tele_p99={r['telemetry_lat_ms']['p99']:.2f}ms "
                   f"stale={r['stale_updates']} dup={r['dup_updates']}", flush=True)
             time.sleep(2)
