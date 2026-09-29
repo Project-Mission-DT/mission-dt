@@ -141,6 +141,7 @@ about 15 min.
 | E4 twin fidelity at 0, 5 and 10% loss, N = 10, regulator on | `run_e4.py` | `e4_fidelity.json` |
 | E4 with the regulator off | `run_e4.py --no-regulator` | `e4_fidelity_noreg.json` |
 | E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 | `run_e5.py` | `e5_resources.json` |
+| E6 CPU and peak memory of Mission-DT (MQTT), a ROS 2 implementation and a Gazebo emulation of the fleet, N = 10, 50, 100 (not in `run_all.sh`; needs ROS 2 and Gazebo) | `run_e6.py` | `e6_comparison.json` |
 
 Or step by step:
 ```bash
@@ -149,6 +150,7 @@ python experiments/run_e3.py                   # E3 swarm propagation latency
 python experiments/run_e4.py                   # E4 twin fidelity at 0/5/10% loss
 python experiments/run_e4.py --no-regulator    # E4 with the regulator off
 python experiments/run_e5.py                   # E5 CPU and memory of the core process
+taskset -c 0 python3.12 experiments/run_e6.py  # E6 Mission-DT vs. ROS 2 vs. Gazebo (see below)
 python experiments/make_figures.py             # figures into results/
 python experiments/aggregate.py results/rep1 results/rep2 ...   # summary over repetitions
 ```
@@ -166,6 +168,8 @@ A broker that is already running keeps its own configuration.
 | Core CPU (`core_cpu_pct`, E1 to E3) | User + system CPU time of the frame loop thread (`time.thread_time`) plus the paho-mqtt network thread (`/proc/self/task/<tid>/stat`, Linux only, resolution one clock tick) over the run duration, in % of one core. The virtual agents run as threads of the same process and are not counted. `core_cpu_s` (E1, E2) gives the two threads apart. |
 | Process CPU (`cpu_pct`, E5) | User + system CPU time of the whole Mission-DT process over wall time, in % of one core. The agents run in a second process; N = 0 is the core connected with no agent. |
 | Peak memory (`peak_rss_mib`, E5) | Peak resident set of the Mission-DT process (`VmHWM` on Linux, `ru_maxrss` elsewhere). |
+| Stack CPU and memory (`processes.*`, `total`, E6) | Per process of a stack: user + system CPU time from `/proc/<pid>/stat` over a 30 s window that starts 5 s after the agents start (Gazebo: 5 s after the monitor receives the odometry of every vehicle), in % of one core; peak resident set `VmHWM` and resident set `VmRSS` from `/proc/<pid>/status` at the end of the window. The broker is a Mosquitto instance started for each trial, so its `VmHWM` covers that trial only. `total` sums the processes of the stack. |
+| Real-time factor (`gazebo.rtf`, E6) | Simulated time over wall time of the Gazebo server across the window, from the `sim_time` and `real_time` fields of the first and last `/world/e6/stats` messages of the window. |
 | Repetition statistics (`summary.*`) | Mean and sample standard deviation over the per-run values of each metric; *pooled* columns use all raw samples of all repetitions, with the percentile rule rank floor(pn/100)+1. |
 
 Results of the revised paper (`results/rep1/` to `results/rep5/`, five runs,
@@ -181,6 +185,27 @@ RMSE 0.617 ± 0.001 to 0.632 ± 0.011 m with the regulator and 0.182 ± 0.003 to
 `results/README.md` describes each results directory, including a Windows run
 of the original core with the default Mosquitto configuration (Nagle's
 algorithm enabled) in `results/windows_original_code/`.
+
+### E6 resource comparison
+`experiments/run_e6.py` runs the same fleet (N = 10, 50, 100 agents, goals on
+the E5 grid) on three stacks, one after the other, with every process pinned
+to core 0 (`taskset -c 0`; the child processes inherit the affinity):
+
+| Stack | Processes | Implementation |
+|---|---|---|
+| `mission_dt` | mission core, agents, broker | The two processes of E5 (`MissionDT` of `core.py`, N `VirtualAgent` threads) and a Mosquitto broker started for the trial with `mosquitto.conf`. |
+| `ros2` | mission node, agents | rclpy node that subscribes `/mdt/<id>/telemetry` and publishes `/mdt/<id>/actuation` (`std_msgs/String` with the JSON payloads of the MQTT stack) and calls `Delta_e` of `model.py` as `core.py` does, in a 125 ms timer of a `SingleThreadedExecutor`; agents process with N `VirtualAgent` threads (same state, kinematics, 50 Hz step and 8.33 Hz telemetry) whose MQTT client is replaced by a ROS 2 publisher and subscription. QoS best effort, keep last 1, volatile (MQTT QoS 0); default RMW; `ROS_DOMAIN_ID=42`, discovery range localhost. The mission node knows the fleet from the start (no registration topic). |
+| `gazebo` | gz sim server | `gz sim -s -r --headless-rendering` with a generated SDF world: N box vehicles on the goal grid, `VelocityControl` with a constant twist (2 m/s surface, 12 m/s aerial) and `OdometryPublisher` at 8.33 Hz; world systems: Physics only (no Sensors, SceneBroadcaster or UserCommands), no gravity, 1 ms step, real-time factor 1. No mission layer. A monitor process subscribes to `/world/e6/stats` and to every odometry topic (gz-transport); its CPU and memory are reported as `monitor`, outside the stack total. |
+
+The mission processes also report the frames, overruns, telemetry received
+per agent and latencies inside the window, and the agents processes the
+actuation received per agent. Versions of the E6 runs: Python 3.12.3 for
+every stack (rclpy of ROS 2 Jazzy needs Python 3.12), paho-mqtt 2.1.0,
+Mosquitto 2.0.18, ROS 2 Jazzy (rclpy 7.1.12, `rmw_fastrtps_cpp` 8.4.4 with
+Fast DDS 2.14.6), Gazebo Harmonic (gz-sim 8.15.0, gz-physics 7.8.0 with DART,
+gz-transport 13.6.0). The script reads `MDT_ROS_SETUP` (default
+`/opt/ros/jazzy/setup.bash`) and starts its own broker, so no other broker may
+listen on port 1883.
 
 `experiments/clear_retained.py` clears leftover retained MQTT state
 (ghost agent registrations, stale checkpoints/routes) — run it before
@@ -201,7 +226,7 @@ view's checkpoints/routes/panel support, …) and reports what's missing
 mission_dt/       model.py (Δ^e and its functions), core.py (MQTT I/O),
                   agents.py (virtual agents), core_orig.py (original core)
 experiments/      demo_mission, staged_photo, run_experiments (E1/E2),
-                  run_e3, run_e4, run_e5, aggregate, panel, make_figures,
+                  run_e3, run_e4, run_e5, run_e6, aggregate, panel, make_figures,
                   clear_retained
 viz/              3D mission view (Ursina)
 configs/          mission configuration files

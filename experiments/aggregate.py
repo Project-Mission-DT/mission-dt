@@ -1,11 +1,11 @@
 """
-Aggregate the repetitions of the experiment battery (E1..E5).
+Aggregate the repetitions of the experiment battery (E1..E6).
 
     python experiments/aggregate.py results/rep*
 
 Each argument is a repetition directory holding the JSON files written by
 run_experiments.py (E1, E2), run_e3.py, run_e4.py (with and without
---no-regulator) and run_e5.py. Missing files are skipped. The script writes
+--no-regulator), run_e5.py and run_e6.py. Missing files are skipped. The script writes
 summary.json and summary.md into the parent directory of the first argument.
 
 Per configuration and per scalar metric: mean, sample standard deviation
@@ -30,6 +30,7 @@ FILES = [
     ("e4_fidelity", "loss"),
     ("e4_fidelity_noreg", "loss"),
     ("e5_resources", "n_agents"),
+    ("e6_comparison", ("stack", "n_agents")),
 ]
 # Fields that identify or parametrise a run; they are not metrics.
 CONFIG_FIELDS = {"n_agents", "regulator", "loss", "duration_s", "sep_m"}
@@ -37,6 +38,9 @@ FRAME_MS = 125.0
 HIST_BIN_MS, HIST_MAX_MS = 10.0, 300.0
 STREAK_BINS = ["0", "1", "2", ">=3"]
 DOMAINS = ["aerial", "surface"]
+E6_STACKS = ["mission_dt", "ros2", "gazebo"]      # order of the E6 tables
+E6_PROCS = {"mission_dt": ["core", "agents", "broker"], "ros2": ["core", "agents"],
+            "gazebo": ["gz_sim"]}
 
 
 # ---------------------------------------------------------------- helpers
@@ -133,7 +137,12 @@ def group_by_config(per_rep, key):
     groups = {}
     for rep, recs in per_rep.items():
         for r in recs:
-            groups.setdefault(r.get(key), {})[rep] = r
+            v = tuple(r.get(k) for k in key) if isinstance(key, tuple) else r.get(key)
+            groups.setdefault(v, {})[rep] = r
+    if isinstance(key, tuple):       # E6: (stack, N), stacks in E6_STACKS order
+        order = sorted(groups, key=lambda v: (
+            E6_STACKS.index(v[0]) if v[0] in E6_STACKS else len(E6_STACKS), str(v[0]), v[1:]))
+        return [(v, groups[v]) for v in order]
     try:
         order = sorted(groups, key=lambda v: (v is None, v))
     except TypeError:
@@ -279,8 +288,9 @@ def summarise(data):
         grouped = group_by_config(data[stem], key)
         configs = []
         for val, recs in grouped:
-            c = {key: val, "reps": sorted(recs), "n_reps": len(recs),
-                 "metrics": per_rep_metrics(recs)}
+            c = dict(zip(key, val)) if isinstance(key, tuple) else {key: val}
+            c.update({"reps": sorted(recs), "n_reps": len(recs),
+                      "metrics": per_rep_metrics(recs)})
             if stem in ("e1_scalability", "e2_regulator"):
                 c["pooled"] = summarise_timing(recs)
             elif stem == "e3_swarm":
@@ -288,7 +298,8 @@ def summarise(data):
             elif stem.startswith("e4_"):
                 c["pooled"] = summarise_e4(recs)
             configs.append(c)
-        entry = {"config_key": key, "configs": configs}
+        entry = {"config_key": ",".join(key) if isinstance(key, tuple) else key,
+                 "configs": configs}
         if stem == "e2_regulator":
             entry["ratio_off_on"] = ratio_off_on(grouped)
         summary[stem] = entry
@@ -434,6 +445,60 @@ def render_md(summary, meta):
                  ms(c["metrics"], "overruns", 0)] for c in e["configs"]]
         L += table(["N", "reps", "CPU % of one core", "peak RSS MiB", "frames",
                     "overruns"], rows)
+        L.append("")
+
+    e = summary.get("e6_comparison")
+    if e:
+        L += ["## E6 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo", "",
+              "Per process, over the measured window: CPU = (utime + stime) / wall "
+              "in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the "
+              "window. All processes on core 0. *total* sums the processes of the stack.", ""]
+        rows = []
+        for c in e["configs"]:
+            m = c["metrics"]
+            for proc in E6_PROCS.get(c["stack"], []) + ["total"]:
+                pre = "total." if proc == "total" else f"processes.{proc}."
+                rows.append([c["stack"], c["n_agents"], c["n_reps"], proc,
+                             ms(m, pre + "cpu_pct", 1), ms(m, pre + "peak_rss_mib", 1),
+                             ms(m, pre + "rss_end_mib", 1)])
+        L += table(["stack", "N", "reps", "process", "CPU % of one core",
+                    "peak RSS MiB", "RSS end MiB"], rows)
+        rows = []
+        for c in e["configs"]:
+            if c["stack"] == "gazebo":
+                continue
+            m = c["metrics"]
+            rows.append([c["stack"], c["n_agents"], c["n_reps"],
+                         f"{f(g(m, 'mission.overruns', 'max'), 0)}/"
+                         f"{f(g(m, 'mission.frames', 'mean'), 0)}",
+                         ms(m, "mission.frame_ms.mean", 2), ms(m, "mission.frame_ms.max", 2),
+                         ms(m, "mission.telemetry_agents_received", 0),
+                         ms(m, "mission.telemetry_min_per_agent", 0),
+                         ms(m, "mission.telemetry_rate_hz_per_agent", 2),
+                         ms(m, "mission.telemetry_lat_ms.p50", 2),
+                         ms(m, "mission.telemetry_lat_ms.p99", 2),
+                         ms(m, "agents.actuation_min_per_agent", 0),
+                         ms(m, "agents.actuation_lat_ms.p99", 2)])
+        if rows:
+            L += ["", "Mission layer in the window (ms):", ""]
+            L += table(["stack", "N", "reps", "max overruns/mean frames", "frame mean", "frame max",
+                        "agents received", "min msgs per agent", "telemetry Hz per agent",
+                        "tele p50", "tele p99", "min act. per agent", "act p99"], rows)
+        rows = []
+        for c in e["configs"]:
+            if c["stack"] != "gazebo":
+                continue
+            m = c["metrics"]
+            rows.append([c["n_agents"], c["n_reps"], ms(m, "gazebo.rtf", 3),
+                         ms(m, "gazebo.rtf_stats_min", 3), ms(m, "gazebo.steps_per_s", 0),
+                         ms(m, "gazebo.odom_models_received", 0),
+                         ms(m, "gazebo.odom_rate_hz_per_model", 2),
+                         ms(m, "monitor.cpu_pct", 1)])
+        if rows:
+            L += ["", "Gazebo real-time factor over the window (sim time / wall time; "
+                  "1 ms physics step, target 1.0) and odometry received by the monitor:", ""]
+            L += table(["N", "reps", "RTF", "min RTF (stats msg)", "steps/s",
+                        "models received", "odom Hz per model (wall)", "monitor CPU %"], rows)
         L.append("")
     return "\n".join(L)
 

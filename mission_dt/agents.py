@@ -27,6 +27,23 @@ class VirtualAgent(threading.Thread):
     def __init__(self, agent_id, domain="surface", host="127.0.0.1",
                  regulator=True, duration_s=30.0, jitter=True, loss=0.0):
         super().__init__(daemon=True)
+        self._init_state(agent_id, domain, regulator, duration_s, jitter, loss)
+
+        self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
+                               client_id=agent_id, protocol=mqtt.MQTTv5)
+        self.cli.on_message = self._on_act
+        self.cli.connect(host, 1883)
+        # disable Nagle on the client socket: paho does not set TCP_NODELAY
+        self.cli.socket().setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.cli.subscribe(f"missiondt/agents/{agent_id}/actuation", qos=0)
+        self.cli.publish(f"missiondt/agents/{agent_id}/register",
+                         json.dumps({"domain": domain, "kind": "virtual"}),
+                         qos=1, retain=True)
+        self.cli.loop_start()
+
+    # state of the emulated vehicle and metrics, independent of the transport
+    # (E6 reuses it with a ROS 2 transport, experiments/run_e6.py)
+    def _init_state(self, agent_id, domain, regulator, duration_s, jitter, loss):
         self.aid, self.domain = agent_id, domain
         self.regulator = regulator
         self.loss = loss              # simulated network loss probability
@@ -49,18 +66,6 @@ class VirtualAgent(threading.Thread):
         self.t_last_pub = None
         self.act_latencies = []   # DT actuation publish -> agent apply (s)
         self.swarm_latencies = []  # neighbor telemetry pub -> corrective actuation here (s)
-
-        self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
-                               client_id=agent_id, protocol=mqtt.MQTTv5)
-        self.cli.on_message = self._on_act
-        self.cli.connect(host, 1883)
-        # disable Nagle on the client socket: paho does not set TCP_NODELAY
-        self.cli.socket().setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.cli.subscribe(f"missiondt/agents/{agent_id}/actuation", qos=0)
-        self.cli.publish(f"missiondt/agents/{agent_id}/register",
-                         json.dumps({"domain": domain, "kind": "virtual"}),
-                         qos=1, retain=True)
-        self.cli.loop_start()
 
     # actuation A_k^t from the Mission-DT (two-way channel: DT -> twin)
     def _on_act(self, cli, ud, msg):
