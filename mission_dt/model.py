@@ -55,11 +55,14 @@ class State:
     vel: tuple[float, float, float] = (0.0, 0.0, 0.0)
     vb: float = 0.0
     t: float = 0.0          # tau_pub of the message that produced this state
-    seq: int = -1           # sequence number of that message (-1 = never seeded)
+    seq: int = -1           # sequence number of that message (-1 = no message)
     stale: bool = True      # True when delta_e extrapolated (no new telemetry)
 
     @property
     def seeded(self) -> bool:
+        """True for every state in M^t.B (an agent enters B^t with its
+        first applied message); False only for the default State() that
+        read-only views return for an agent without state."""
         return self.seq >= 0
 
     @property
@@ -90,8 +93,9 @@ Sigma = Callable[[object, Mapping[str, State], Phi], Mapping[str, Goal]]
 
 
 def fixed_waypoints(g_mission: Mapping[str, Goal], B, phi) -> Mapping[str, Goal]:
-    """sigma used in E1-E4: the mission goal is one waypoint per agent."""
-    return dict(g_mission)
+    """sigma used in E1-E4: the mission goal is one waypoint per agent,
+    for the agents that have a state B_k^t."""
+    return {k: g_mission[k] for k in B if k in g_mission}
 
 
 @dataclass(frozen=True)
@@ -127,22 +131,28 @@ def clip(x: float, lo: float = -1.0, hi: float = 1.0) -> float:
 # delta^e_d : agent transition
 # ----------------------------------------------------------------------
 def delta_e(d: str, H: tuple[State, ...], I: tuple[Msg, ...],
-            prev: State, P: Params) -> State:
+            prev: Optional[State], P: Params) -> Optional[State]:
     """B_k^t = delta^e_d(H_k^t, I_k^t).
 
-    prev = B_k^{t-1} (the last element of H, or the initial state).
-    Case 1: some message in I has seq > prev.seq -> apply the newest one.
-    Case 2: otherwise (I empty or only old messages) -> constant-displacement
+    prev = B_k^{t-1} (the last element of H), or None when agent k has no
+    state yet (no message applied).
+    Case 1: some message in I has seq > prev.seq (any message when prev is
+            None) -> apply the newest one.
+    Case 2: prev is None and no message applies -> None: agent k has no
+            B_k^t, so it is absent from B^t, Phi and A^t.
+    Case 3: otherwise (I empty or only old messages) -> constant-displacement
             extrapolation p^t = p^{t-1} + (p^{t-1} - p^{t-2}); altitude only
-            for aerial agents; attitude and velocity kept.
+            for aerial agents; attitude and velocity kept. With one state in
+            H the position is held.
     """
-    fresh = [m for m in I if m.seq > prev.seq]
+    last = prev.seq if prev is not None else -math.inf
+    fresh = [m for m in I if m.seq > last]
     if fresh:
         m = max(fresh, key=lambda x: x.seq)
         return State(p=m.p, att=m.att, vel=m.vel, vb=m.vb, t=m.t_pub,
                      seq=m.seq, stale=False)
-    if not prev.seeded:
-        return replace(prev, stale=True)
+    if prev is None:
+        return None
     if len(H) >= 2:
         b1, b0 = H[-1], H[-2]
         dp = (b1.p[0] - b0.p[0], b1.p[1] - b0.p[1],
@@ -156,9 +166,15 @@ def delta_e(d: str, H: tuple[State, ...], I: tuple[Msg, ...],
 # Phi : mission context
 # ----------------------------------------------------------------------
 def phi_of(B: Mapping[str, State], dom: Mapping[str, str]) -> Phi:
-    """phi_k^t = min_{j != k, d_j = d_k} ||pi_h(p_k) - pi_h(p_j)||, over seeded agents."""
+    """phi_k^t = min_{j != k, d_j = d_k} ||pi_h(p_k) - pi_h(p_j)||, over the agents in B^t.
+
+    j_k is the minimiser; ties go to the lowest agent id (ids are visited in
+    sorted order and only a strictly smaller distance replaces the best).
+    An agent alone in its domain gets phi_k^t = +inf and j_k = None, so
+    lambda (not lambda^s) applies.
+    """
     dist, nb = {}, {}
-    ids = [k for k in B if B[k].seeded]
+    ids = sorted(B)
     for k in ids:
         best, bd = None, math.inf
         for j in ids:
@@ -209,26 +225,28 @@ def Delta_e(HM: MissionHistory, I: Mapping[str, tuple[Msg, ...]],
             ) -> tuple[Mission, dict[str, Act], dict[str, Optional[str]]]:
     """(M^t, A^t) = Delta^e(H_M^t, I^t, g^t). Order: delta -> Phi -> sigma -> lambda.
 
+    An agent of dom with no state and no applicable message has no B_k^t:
+    it is absent from M^t.B, phi^t, g^t and A^t until its first applied message.
     Returns also the trigger neighbor of each separation command (for metrics).
     Updates HM in place with B^t (the only side effect).
     """
     B = {}
     for k in dom:
-        prev = HM.last.get(k, State())
-        B[k] = delta_e(dom[k], HM.H.get(k, ()), I.get(k, ()), prev, P)
+        b = delta_e(dom[k], HM.H.get(k, ()), I.get(k, ()), HM.last.get(k), P)
+        if b is not None:           # an agent without state has no B_k^t
+            B[k] = b
     ph = phi_of(B, dom)
     g = P.sigma(g_mission, B, ph)
     A, trig = {}, {}
-    for k in dom:
-        if not B[k].seeded or k not in g:
+    for k in B:
+        if k not in g:
             continue
         j = ph.nb.get(k)
         if P.separation and j is not None and ph.dist[k] < P.d_s:
             A[k], trig[k] = lam_s(dom[k], B[k], B[j], g[k], P), j
         else:
             A[k], trig[k] = lam(dom[k], B[k], g[k], P), None
-    for k in dom:
-        HM.last[k] = B[k]
-        if B[k].seeded:
-            HM.H[k] = (HM.H.get(k, ()) + (B[k],))[-P.L:]
+    for k, b in B.items():
+        HM.last[k] = b
+        HM.H[k] = (HM.H.get(k, ()) + (b,))[-P.L:]
     return Mission(B, ph, g), A, trig

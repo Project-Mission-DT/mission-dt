@@ -237,7 +237,8 @@ viz/              3D mission view (Ursina)
 configs/          mission configuration files
 results/          rep1/ to rep5/ (raw measurements, JSON), summary.json/.md,
                   logs; see results/README.md
-tests/            test_equivalence.py (original core vs. model.py)
+tests/            test_equivalence.py (original core vs. model.py),
+                  test_model.py (desk-check scenario of Section II)
 mosquitto.conf    broker configuration of the paper runs
 run_mission.sh    one-command launcher (broker + mission + 3D view)
 run_all.sh        one-command experiment battery (E1-E5 + figures)
