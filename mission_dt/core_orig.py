@@ -1,17 +1,13 @@
 """
-Mission-DT: Mission-level Digital Twin core.
-
-Extends the fleet-level DT model (Fleet-DT) to the mission level:
-  M^t = < A^t, Delta^e, g^t, phi^t >
-where A^t is the set of hybrid agents (physical or virtual, aerial or
-surface), Delta^e the set of extended transition functions, g^t the
-mission goals and phi^t the mission context.
+Mission-DT core of the submitted version of the paper, kept unchanged in its
+logic for tests/test_equivalence.py and for the reproduction runs in
+results/linux_original_code/. The revised core is core.py on top of model.py.
 
 Each agent k has:
-  I_k^t  : input model (sensor readings, received via MQTT)
-  B_k^t  : state model (pose, attitude, velocities)
-  A_k^t  : actuation model (throttle, steering), computed by lambda
-The DT runs at a fixed frame period T_f (default 125 ms, as in Fleet-DT).
+  z_k^t  : telemetry (sensor readings, received via MQTT)
+  x_k^t  : state (pose, attitude, velocities)
+  u_k^t  : actuation (throttle, steering), computed by lambda
+The core runs at a fixed frame period T_f (default 125 ms).
 """
 import json
 import math
@@ -30,7 +26,7 @@ FRAME_MS = 125.0  # DT frame period (ms)
 # ----------------------------------------------------------------------
 @dataclass
 class AgentState:
-    """B_k^t : lat, lon, alt, attitude, body velocities."""
+    """x_k^t : lat, lon, alt, attitude, body velocities."""
     lat: float = 0.0
     lon: float = 0.0
     alt: float = 0.0
@@ -52,7 +48,7 @@ class AgentRecord:
     state: AgentState = field(default_factory=AgentState)
     history: deque = field(default_factory=lambda: deque(maxlen=8))  # [B^i;B^j]
     last_seq: int = -1
-    goal: tuple = (0.0, 0.0, 0.0)   # g_k^t : target lat, lon, alt
+    goal: tuple = (0.0, 0.0, 0.0)   # omega_k^t : target lat, lon, alt
     stale: bool = True
 
 
@@ -63,8 +59,8 @@ class MissionDT:
     """
     Subscribes to  missiondt/agents/+/telemetry
     Publishes  to  missiondt/agents/<id>/actuation
-    Runs delta^e once per frame for every registered agent and
-    lambda (goal-seeking controller) to produce actuation A_k^t.
+    Runs f once per frame for every registered agent and
+    lambda (goal-seeking controller) to produce actuation u_k^t.
     Collects per-frame and per-message metrics.
     """
 
@@ -112,13 +108,13 @@ class MissionDT:
                 self.agents[aid] = AgentRecord(
                     agent_id=aid, domain=payload["domain"], kind=payload["kind"])
             return
-        # telemetry: I_k^t
+        # telemetry: z_k^t
         self.msg_latencies.append(now - payload["t_pub"])
         with self._lock:
             self._pending[aid].append(payload)
 
     # ------------------------------------------------------------------
-    # delta^e : state transition using latest input + state history
+    # f : state transition using latest input + state history
     # ------------------------------------------------------------------
     def _delta(self, rec: AgentRecord, telems: list) -> None:
         if not telems:
@@ -150,7 +146,7 @@ class MissionDT:
             rec.history.append(AgentState(**vars(rec.state)))
 
     # ------------------------------------------------------------------
-    # lambda : goal-seeking decision function -> A_k^t
+    # lambda : goal-seeking decision function -> u_k^t
     # ------------------------------------------------------------------
     def _lambda(self, rec: AgentRecord) -> dict:
         s, g = rec.state, rec.goal
@@ -191,7 +187,7 @@ class MissionDT:
 
     # ------------------------------------------------------------------
     def run(self, duration_s: float, goals: dict | None = None):
-        """Main DT loop: one Delta^e evaluation per frame for the mission."""
+        """Main DT loop: one Gamma evaluation per frame for the mission."""
         t_next = time.monotonic()
         t_end = t_next + duration_s
         while not self._stop.is_set() and time.monotonic() < t_end:

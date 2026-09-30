@@ -2,12 +2,12 @@
 Virtual agents: the "second digital twin" that emulates a physical
 drone (aerial) or vessel (surface). From the Mission-DT viewpoint a
 virtual agent is indistinguishable from a physical one: both publish
-I_k^t on missiondt/agents/<id>/telemetry and consume A_k^t from
+z_k^t on missiondt/agents/<id>/telemetry and consume u_k^t from
 missiondt/agents/<id>/actuation.
 
 Sensors are sampled at their native rate (SENSOR_HZ); the bandwidth
 regulator forwards only every k-th sample so that the network sees
-PUBLISH_HZ, matching the DT frame rate (Fleet-DT regulator scheme).
+PUBLISH_HZ, close to the DT frame rate.
 """
 import json
 import socket
@@ -67,7 +67,7 @@ class VirtualAgent(threading.Thread):
         self.act_latencies = []   # DT actuation publish -> agent apply (s)
         self.swarm_latencies = []  # neighbor telemetry pub -> corrective actuation here (s)
 
-    # actuation A_k^t from the Mission-DT (two-way channel: DT -> twin)
+    # actuation u_k^t from the Mission-DT (two-way channel: DT -> twin)
     def _on_act(self, cli, ud, msg):
         a = json.loads(msg.payload)
         now = time.time()

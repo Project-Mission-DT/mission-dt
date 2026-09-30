@@ -8,11 +8,12 @@ Towards Mission-DT it implements the same contract as a virtual agent:
 
   register   missiondt/agents/<id>/register   QoS 1, retained,
              {"domain": ..., "kind": "physical"}
-  telemetry  missiondt/agents/<id>/telemetry  QoS 0, I_k^t with seq and t_pub
-  actuation  missiondt/agents/<id>/actuation  QoS 0, A_k^t = {"tau", "alpha"}
+  telemetry  missiondt/agents/<id>/telemetry  QoS 0, z_k^t with seq and t_pub
+  actuation  missiondt/agents/<id>/actuation  QoS 0, u_k^t = {"tau", "alpha"}
 
 Telemetry: the adapter requests GLOBAL_POSITION_INT and ATTITUDE at 50 Hz and
-publishes one of every six position samples (8.33 Hz), the Fleet-DT regulator.
+publishes one of every six position samples (8.33 Hz), the regulator of the
+virtual agents.
 
 Actuation: the adapter discards a command older than T_f (t_pub of the core)
 and passes the others to the autopilot in GUIDED mode as SET_ATTITUDE_TARGET
@@ -40,7 +41,7 @@ import paho.mqtt.client as mqtt
 from pymavlink import mavutil
 
 SENSOR_HZ = 50.0
-DECIM = 6                  # 50 Hz / 6 = 8.33 Hz, Fleet-DT regulator
+DECIM = 6                  # 50 Hz / 6 = 8.33 Hz, as the virtual agents
 T_F = 0.125                # commands older than one frame are discarded
 YAW_GAIN = {"surface": 0.6, "aerial": 1.5}   # rad/s per unit alpha (agents.py)
 MAV = mavutil.mavlink

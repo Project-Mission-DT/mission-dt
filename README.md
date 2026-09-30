@@ -29,14 +29,14 @@ of the paper.
 ## Model
 | Element | Definition | Code |
 |---|---|---|
-| Mission state | `M^t = <B^t, φ^t, g^t>`: agent states, Mission Context, and agent goals. The mission, and not a single vehicle, is the twinned entity. | `mission_dt/model.py` |
-| Mission transition `Δ^e` | Runs once per frame of `T_f = 125 ms` and composes `δ^e` (state update, with dead reckoning when an agent sends no new telemetry), `Φ` (context), `σ` (goals), and `λ` (actuation), in this order. | `mission_dt/model.py` |
-| Agents | Each agent is a physical vehicle (ArduPilot with the MAVLink-to-MQTT adapter of `mission_dt/mavlink_adapter.py`) or a virtual agent (vehicle-level emulator with its own kinematic model, state, and MQTT connection). The core applies the same `Δ^e` to both kinds. A mission with virtual agents only is a digital model. | `mission_dt/agents.py` |
+| Mission state | `M^t = <x^t, φ^t, ω^t>`: agent states, Mission Context, and agent goals. The mission, and not a single vehicle, is the twinned entity. | `mission_dt/model.py` |
+| Mission transition `Γ` | Runs once per frame of `T_f = 125 ms` and composes `f_d` (agent state update, with dead reckoning when an agent sends no new telemetry), `Φ` (context), `σ` (goals), and `λ` (actuation), in this order. | `mission_dt/model.py` |
+| Agents | Each agent is a physical vehicle (ArduPilot with the MAVLink-to-MQTT adapter of `mission_dt/mavlink_adapter.py`) or a virtual agent (vehicle-level emulator with its own kinematic model, state, and MQTT connection). The core applies the same `Γ` to both kinds. A mission with virtual agents only is a digital model. | `mission_dt/agents.py` |
 | Mission Context `φ^t` | For each agent k, the horizontal distance `φ_k^t` to the nearest agent `j_k^t` of the same domain. When `φ_k^t` falls below `d_sep`, `λ` sends a corrective command (separation rule). | `mission_dt/model.py` |
 | Bandwidth regulator | Each agent steps its model at 50 Hz and publishes one of every six cycles (8.33 Hz, 6.0x less uplink traffic). | `mission_dt/agents.py` |
-| MQTT I/O | The core keeps, per agent, the pending telemetry message with the highest sequence number, runs `Δ^e`, and publishes the actuation of each agent. | `mission_dt/core.py` |
+| MQTT I/O | The core keeps, per agent, the pending telemetry message with the highest sequence number, runs `Γ`, and publishes the actuation of each agent. | `mission_dt/core.py` |
 
-The symbols follow Table II and Eqs. (1) to (6) of the paper.
+The symbols follow Table II and Eqs. (1) to (6) of the paper: telemetry `z_k^t`, state `x_k^t`, command `u_k^t`, goals `ω_k^t`. In the code, `agent_update` implements `f_d` and `mission_transition` implements `Γ`.
 
 ## Scope of the evaluation
 The paper evaluates the Python runtime with virtual agents (E1 to E7) and
@@ -206,7 +206,7 @@ both SITL boats (about 45 s of EKF start-up) before the mission starts.
 ## Measurements
 | Quantity | Definition |
 |---|---|
-| Frame time (`frame_ms`) | Time from the start of the frame (collection of the inputs I^t) to the return of the `publish` call of the last actuation. The `on_frame` and 3D-view hooks run after the measurement. A frame overrun is a frame time above 125 ms. |
+| Frame time (`frame_ms`) | Time from the start of the frame (collection of the inputs z^t) to the return of the `publish` call of the last actuation. The `on_frame` and 3D-view hooks run after the measurement. A frame overrun is a frame time above 125 ms. |
 | Release jitter (`release_jitter_ms`) | Actual start of a frame minus its scheduled start. The schedule advances 125 ms per frame and restarts from the current time after an overrun. |
 | Swarm-reaction latency (E3) | `t_apply(neighbor) - t_pub(triggering telemetry)`: time from the publication of the telemetry that triggers a corrective command to the application of that command by the neighbor agent. |
 | Twin fidelity (E4) | Position and heading error of the twin state against the ground truth that the virtual agents log at 50 Hz, interpolated at the frame instant. Each agent drops each telemetry message with probability `p_loss`. |
@@ -380,19 +380,18 @@ python -m pytest tests
 ```
 | Test | Check |
 |---|---|
-| `tests/test_equivalence.py` | Replays the same telemetry through the original core (`core_orig.py`) and through `Δ^e` of `model.py` and compares states and commands frame by frame (missing, duplicate, and reordered messages; separation; agents without telemetry). |
-| `tests/test_model.py` | Desk check of `Δ^e` on the scenario of Section II of the paper (3 agents, 5 frames): reordered messages, dead reckoning, an agent with no state, and an exact tie in the nearest neighbor. |
+| `tests/test_equivalence.py` | Replays the same telemetry through the original core (`core_orig.py`) and through `Γ` of `model.py` and compares states and commands frame by frame (missing, duplicate, and reordered messages; separation; agents without telemetry). |
+| `tests/test_model.py` | Desk check of `Γ` on the scenario of Section II of the paper (3 agents, 5 frames): reordered messages, dead reckoning, an agent with no state, and an exact tie in the nearest neighbor. |
 
 ## Repository layout
 | Path | Content |
 |---|---|
-| `mission_dt/` | `model.py` (`Δ^e` and its functions), `core.py` (MQTT I/O and frame loop), `agents.py` (virtual agents), `mavlink_adapter.py` (MAVLink-to-MQTT adapter of a physical agent), `core_orig.py` (core of the submitted version) |
+| `mission_dt/` | `model.py` (`Γ` and its functions), `core.py` (MQTT I/O and frame loop), `agents.py` (virtual agents), `mavlink_adapter.py` (MAVLink-to-MQTT adapter of a physical agent), `core_orig.py` (core of the submitted version) |
 | `experiments/` | `run_experiments.py` (E1, E2), `run_e3.py`, `run_e4.py`, `run_e5.py`, `run_e6.py`, `run_e7.py`, `aggregate.py`, `paper_figures.py`, `make_figures.py`, `demo_mission.py`, `staged_photo.py`, `panel.py`, `clear_retained.py` |
 | `viz/` | 3D mission view (Ursina) |
 | `configs/` | Mission configuration files; `sitl_boat.parm` (ArduRover SITL defaults of E7) |
 | `results/` | Raw data of every run (JSON), `summary.json` and `summary.md`, logs; see `results/README.md` |
 | `doc/figures/` | PNGs and values of Figs. 3, 5, and 6 |
-| `doc/MissionDT_Manual_v02.pdf` | User manual of the submitted version |
 | `tests/` | Equivalence test and desk check |
 | `mosquitto.conf` | Broker configuration of the paper runs |
 | `run_mission.sh` | Launcher (broker, mission, 3D view) |
@@ -412,8 +411,8 @@ consumes `missiondt/agents/<id>/actuation`. The local broker bridges these
 topics to the ground-station broker over Wi-Fi (Section III and Fig. 2 of the
 paper), as in the `local.conf` that `run_e7.py` writes. WP_SPEED sets the speed
 at `tau` = 1. The geofence and failsafe functions of the autopilot stay active.
-The repository tests the adapter with ArduRover SITL (E7); field tests with the
-Fleet-DT boats are future work.
+The repository tests the adapter with ArduRover SITL (E7); field tests with
+ArduPilot USVs are future work.
 
 ## Citation
 ```bibtex

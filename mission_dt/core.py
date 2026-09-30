@@ -1,8 +1,8 @@
 """
 Mission-DT core, rewritten on top of the formal model (mission_dt/model.py).
 
-The core only does I/O: it collects I^t from MQTT, calls
-(M^t, A^t) = Delta_e(H_M^t, I^t, g^t) once per frame, and publishes A^t.
+The core only does I/O: it collects z^t from MQTT, calls
+(M^t, u^t) = mission_transition(H_M^t, z^t, omega^t) once per frame, and publishes u^t.
 The MQTT contract (topics, QoS, payload fields) is unchanged, so the
 virtual agents, the viewer and the experiment scripts work as before.
 """
@@ -110,7 +110,7 @@ class MissionDT:
                 pending, self._pending = self._pending, defaultdict(list)
                 dom = dict(self.dom)
             I = {k: tuple(v) for k, v in pending.items() if k in dom}
-            M, A, trig = md.Delta_e(self.HM, I, goals, dom, self.P)
+            M, A, trig = md.mission_transition(self.HM, I, goals, dom, self.P)
             # metrics: stale counts only seeded agents (fix D10)
             for k, B in M.B.items():
                 if B.seeded and B.stale:
@@ -125,7 +125,7 @@ class MissionDT:
                     a.update(avoid=True, trig_t=M.B[j].t, trig_id=j)
                     self.avoid_events += 1
                 self.cli.publish(f"missiondt/agents/{k}/actuation", json.dumps(a), qos=0)
-            # frame time: from I^t collection to the publication of the
+            # frame time: from z^t collection to the publication of the
             # last actuation; instrumentation hooks run after the measurement
             work = time.monotonic() - t0
             if self.on_frame:

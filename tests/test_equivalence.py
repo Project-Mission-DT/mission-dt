@@ -1,6 +1,6 @@
 """Replays the same synthetic telemetry through the original core logic
 (core_orig.MissionDT._delta/_lambda/_separation) and through the formal
-Delta_e, frame by frame, and compares the states and the actuation A_k^t.
+mission_transition, frame by frame, and compares the states and the actuation u_k^t.
 Cases covered: normal telemetry, missing frames (dead reckoning), duplicate
 messages, reordered old messages, aerial and surface agents, separation,
 agents without telemetry during the first frames (no state, no command).
@@ -110,7 +110,7 @@ def replay(reorder):
             A_old[rec.agent_id] = a
         # ---- formal ----
         Im = {k: tuple(md.Msg.from_payload(m) for m in v) for k, v in I.items()}
-        M, A_new, trig = md.Delta_e(HM, Im, goals, dom, P)
+        M, A_new, trig = md.mission_transition(HM, Im, goals, dom, P)
         # ---- compare ----
         with_state = {k for k, rec in old.agents.items() if rec.last_seq >= 0}
         st["no_state_agent_frames"] += N - len(with_state)

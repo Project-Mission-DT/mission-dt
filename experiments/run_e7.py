@@ -7,7 +7,7 @@ the center and the separation rule (d_sep = 12 m) fires between agents of
 both kinds. N_SITL agents are physical agents: an ArduRover SITL instance
 (motorboat model, configs/sitl_boat.parm) with the MAVLink-to-MQTT adapter
 (mission_dt/mavlink_adapter.py) and a local Mosquitto broker bridged to the
-ground-station broker, as on the Fleet-DT boats. The other agents are virtual
+ground-station broker, as on ArduPilot USVs. The other agents are virtual
 agents connected to the ground-station broker.
 
 CPU placement (2 vCPU): core 0 = ground station (broker, mission core and the

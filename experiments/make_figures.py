@@ -17,7 +17,7 @@ ax.plot(N,[r["frame_ms"]["max"] for r in e1],"^:",ms=3.5,label="max",color="#8a1
 ax.axhline(125,color="k",lw=0.8,ls="-.")
 ax.text(2,95,"frame deadline $T_f$ = 125 ms",fontsize=7)
 ax.set_yscale("log");ax.set_xlabel("Fleet size (number of hybrid agents)")
-ax.set_ylabel("$\\Delta^e$ frame compute time (ms)")
+ax.set_ylabel("$\\Gamma$ frame compute time (ms)")
 ax.legend(frameon=False,fontsize=7,loc="center right")
 fig.tight_layout();fig.savefig(f"{R}/fig_scalability.pdf");fig.savefig(f"{R}/fig_scalability.png")
 

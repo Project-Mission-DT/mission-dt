@@ -13,7 +13,7 @@ i.e., the full path: maneuvering agent publishes telemetry -> mission
 core frame (delta + phi + separation) -> corrective actuation received
 by the neighbor. Upper bound by design: ~2 frames (250 ms) + delivery.
 
-Also reports Delta^e frame cost with the O(N^2) phi computation on, to
+Also reports Gamma frame cost with the O(N^2) phi computation on, to
 show the twin still meets the 125 ms deadline with coordination active.
 """
 import json

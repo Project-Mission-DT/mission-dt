@@ -1,7 +1,7 @@
 """Deterministic unit tests of mission_dt/model.py on the desk-check scenario
 of Section II (3 agents, 5 frames). Expected values come from the hand
 computation of the desk check (phi_k^t with the code's metric, 111320 m/deg
-and cos(lat_k); A_k^t = (tau, alpha[, climb]) with the code's lambda_d and
+and cos(lat_k); u_k^t = (tau, alpha[, climb]) with the code's lambda_d and
 lambda^s_d, d_sep = 12 m).
 
 Agents: 1 aerial, 2 aerial, 3 surface (alone in its domain).
@@ -59,7 +59,7 @@ INPUTS = [
 
 INF = math.inf
 # desk_check.md, table "Desk check table": per frame and agent
-# (lat, lon, alt), seq, stale, phi_k^t (code), j_k^t, separation?, A_k^t
+# (lat, lon, alt), seq, stale, phi_k^t (code), j_k^t, separation?, u_k^t
 EXPECTED = [
     {1: ((-30.00000, -51.00000, 20.0), 1, False, 7.7125, 2, True, (0.5, 1.0, 0.0)),
      2: ((-30.00000, -51.00008, 20.0), 1, False, 7.7125, 1, True, (0.5, -1.0, 0.0)),
@@ -90,7 +90,7 @@ def _close(x, y, tol):
 def _run(inputs, dom, goals):
     P = md.Params(separation=True, d_s=12.0)
     HM = md.MissionHistory()
-    return [md.Delta_e(HM, I, goals, dom, P) for I in inputs], HM
+    return [md.mission_transition(HM, I, goals, dom, P) for I in inputs], HM
 
 
 def test_desk_check_scenario():
@@ -125,7 +125,7 @@ def test_dead_reckoning_arithmetic():
 
 
 def test_no_state_before_first_message():
-    """An agent with no state and an empty I_k^t has no B_k^t and receives no
+    """An agent with no state and an empty z_k^t has no x_k^t and receives no
     command: agent 2 is registered at t=0 and sends its first message at t=2."""
     I = [{1: (m(1, 0.0, -30.00000, -51.0, 20.0),)},
          {1: (m(2, 0.1, -29.99999, -51.0, 20.0),), 2: ()},
@@ -135,18 +135,18 @@ def test_no_state_before_first_message():
     P = md.Params(separation=True, d_s=12.0)
     HM = md.MissionHistory()
     for t in (0, 1):
-        M, A, trig = md.Delta_e(HM, I[t], goals, dom, P)
+        M, A, trig = md.mission_transition(HM, I[t], goals, dom, P)
         assert list(M.B) == [1] and list(M.phi.dist) == [1] and list(M.g) == [1], t
         assert list(A) == [1] and 2 not in HM.last and 2 not in HM.H, t
         assert math.isinf(M.phi.dist[1]) and M.phi.nb[1] is None, t   # 2 is not a neighbour
         assert _close(_act(A[1], AER), (1.0, 0.0, 0.0), 1e-12), (t, A[1])
-    M, A, trig = md.Delta_e(HM, I[2], goals, dom, P)
+    M, A, trig = md.mission_transition(HM, I[2], goals, dom, P)
     assert sorted(M.B) == [1, 2] and M.B[2].seq == 1 and not M.B[2].stale
     assert abs(M.phi.dist[1] - 4.8203) <= TOL and (M.phi.nb[1], M.phi.nb[2]) == (2, 1)
     assert _close(_act(A[1], AER), (0.5, 1.0, 0.0), 1e-12), A[1]
     assert _close(_act(A[2], AER), (0.5, -1.0, 0.0), 1e-12), A[2]
     assert len(HM.H[2]) == 1
-    assert md.delta_e(AER, (), (), None, P) is None
+    assert md.agent_update(AER, (), (), None, P) is None
 
 
 def test_tie_goes_to_lowest_id():

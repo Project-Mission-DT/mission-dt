@@ -7,7 +7,7 @@ Three implementations of the same fleet, N agents on the goal grid of E5:
               process of E5 (VirtualAgent threads) and a Mosquitto broker
               started for the trial with mosquitto.conf.
   ros2        a mission node process (rclpy) that subscribes /mdt/<id>/telemetry,
-              calls the mission transition Delta_e of mission_dt/model.py as
+              calls the mission transition mission_transition of mission_dt/model.py as
               core.py does (history, parameters, stale/dup accounting, trigger
               fields) in a 125 ms timer and publishes /mdt/<id>/actuation
               (std_msgs/String, same JSON payloads); an agents process (rclpy)
@@ -261,7 +261,7 @@ def ros_qos():
 class RosMissionDT:
     """ROS 2 counterpart of MissionDT (mission_dt/core.py).
 
-    Same data path: telemetry callback -> pending I^t -> Delta_e once per
+    Same data path: telemetry callback -> pending z^t -> mission_transition once per
     125 ms frame -> actuation with t_pub (and the trigger fields). The frame
     runs in an rclpy timer of a SingleThreadedExecutor instead of the sleep
     loop of core.py. The agent domains are known from the start (the MQTT
@@ -317,7 +317,7 @@ class RosMissionDT:
             pending, self._pending = self._pending, defaultdict(list)
             dom = dict(self.dom)
         I = {k: tuple(v) for k, v in pending.items() if k in dom}
-        M, A, trig = md.Delta_e(self.HM, I, self.goals, dom, self.P)
+        M, A, trig = md.mission_transition(self.HM, I, self.goals, dom, self.P)
         for k, B in M.B.items():
             if B.seeded and B.stale:
                 self.stale_updates += 1
