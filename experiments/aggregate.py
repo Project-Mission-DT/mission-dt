@@ -389,7 +389,7 @@ def render_md(summary, meta):
 
     e = summary.get("e3_swarm")
     if e:
-        L += ["## E3 Swarm propagation latency", ""]
+        L += ["## E3 Swarm-reaction latency", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]

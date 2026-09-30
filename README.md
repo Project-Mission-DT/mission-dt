@@ -16,11 +16,13 @@ measurements included) and their aggregate in `results/summary.json`.
   composes `δ^e` (state update), `Φ` (context), `σ` (goals) and `λ` (actuation), in this
   order (`mission_dt/model.py`).
 - **Hybrid agents**: each agent is a physical vehicle (ArduPilot bridged
-  to MQTT) or a **virtual agent — an independent digital twin** with its
-  own model, state and MQTT connection. The mission core cannot tell
+  to MQTT) or a **virtual agent**, a vehicle-level emulator with its own
+  kinematic model, state and MQTT connection. A mission with virtual agents
+  only is a digital model. The mission core cannot tell
   them apart; agents can move to other processes/machines unchanged.
-- **Swarm coordination**: the Mission Context φ (horizontal distance to the
-  nearest same-domain neighbour) triggers corrective actuation. E3 measures
+- **Swarm coordination**: the Mission Context φ^t collects the neighbour
+  distance φ_k^t, the horizontal distance of agent k to its nearest
+  same-domain neighbour j_k^t, and φ_k^t triggers corrective actuation. E3 measures
   the time a corrective command takes to reach the neighbours. The runtime
   gives no timing guarantee.
 - **Bandwidth regulators** publish one of every six 50 Hz cycles
@@ -137,7 +139,7 @@ about 15 min.
 |---|---|---|
 | E1 scalability, N = 1 to 100 agents, regulator on | `run_experiments.py` | `e1_scalability.json` |
 | E2 regulator on and off, N = 10 | `run_experiments.py` | `e2_regulator.json` |
-| E3 swarm propagation latency, N = 10, 25, 50 | `run_e3.py` | `e3_swarm.json` |
+| E3 swarm-reaction latency, N = 10, 25, 50 | `run_e3.py` | `e3_swarm.json` |
 | E4 twin fidelity at 0, 5 and 10% loss, N = 10, regulator on | `run_e4.py` | `e4_fidelity.json` |
 | E4 with the regulator off | `run_e4.py --no-regulator` | `e4_fidelity_noreg.json` |
 | E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 | `run_e5.py` | `e5_resources.json` |
@@ -146,7 +148,7 @@ about 15 min.
 Or step by step:
 ```bash
 python experiments/run_experiments.py all      # E1 scalability + E2 regulators (~6 min)
-python experiments/run_e3.py                   # E3 swarm propagation latency
+python experiments/run_e3.py                   # E3 swarm-reaction latency
 python experiments/run_e4.py                   # E4 twin fidelity at 0/5/10% loss
 python experiments/run_e4.py --no-regulator    # E4 with the regulator off
 python experiments/run_e5.py                   # E5 CPU and memory of the core process

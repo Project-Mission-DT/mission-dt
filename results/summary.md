@@ -27,7 +27,7 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | uplink_Bps | 5.99 | 0.00 | 5 |
 | dup_updates | 131.92 | 5.06 | 5 |
 
-## E3 Swarm propagation latency
+## E3 Swarm-reaction latency
 
 | N | reps | events | p50 | p99 | mean pooled | p50 pooled | p95 pooled | p99 pooled | max pooled | n pooled | % ≤125 ms | % ≤250 ms | frame p99 pooled | overruns/frames |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

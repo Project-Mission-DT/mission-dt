@@ -2,7 +2,7 @@
 of Section II (3 agents, 5 frames). Expected values come from the hand
 computation of the desk check (phi_k^t with the code's metric, 111320 m/deg
 and cos(lat_k); A_k^t = (tau, alpha[, climb]) with the code's lambda_d and
-lambda^s_d, d_s = 12 m).
+lambda^s_d, d_sep = 12 m).
 
 Agents: 1 aerial, 2 aerial, 3 surface (alone in its domain).
 Events: t=2 agent 1 receives two messages (s4, s3) in one frame, reversed;
@@ -59,7 +59,7 @@ INPUTS = [
 
 INF = math.inf
 # desk_check.md, table "Desk check table": per frame and agent
-# (lat, lon, alt), seq, stale, phi_k^t (code), j_k, separation?, A_k^t
+# (lat, lon, alt), seq, stale, phi_k^t (code), j_k^t, separation?, A_k^t
 EXPECTED = [
     {1: ((-30.00000, -51.00000, 20.0), 1, False, 7.7125, 2, True, (0.5, 1.0, 0.0)),
      2: ((-30.00000, -51.00008, 20.0), 1, False, 7.7125, 1, True, (0.5, -1.0, 0.0)),

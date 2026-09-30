@@ -17,7 +17,7 @@ Files of one repetition directory:
 |---|---|
 | `e1_scalability.json` | E1 scalability, N = 1 to 100 |
 | `e2_regulator.json` | E2 regulator on and off, N = 10 |
-| `e3_swarm.json` | E3 swarm propagation latency, N = 10, 25, 50 |
+| `e3_swarm.json` | E3 swarm-reaction latency, N = 10, 25, 50 |
 | `e4_fidelity.json` | E4 twin fidelity at 0, 5 and 10% loss, regulator on |
 | `e4_fidelity_noreg.json` | E4 with the regulator off |
 | `e5_resources.json` | E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 |

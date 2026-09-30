@@ -7,12 +7,13 @@ the next state, with no MQTT, clock or global access. The mission core
 
 Notation (paper -> code)
   A = {1..N}                      agents (dict keys)
-  t, tau_t = tau_0 + t*T_f        frame index, frame instant
-  I_k^t                           tuple[Msg, ...]  telemetry of k received in (tau_{t-1}, tau_t]
+  t, vartheta_t = vartheta_0 + t*T_f  frame index, frame instant
+  mu                              Msg (one telemetry message)
+  I_k^t                           tuple[Msg, ...]  telemetry of k received in (vartheta_{t-1}, vartheta_t]
   B_k^t                           State
   H_k^t = (B_k^{t-L}..B_k^{t-1})  tuple[State, ...] with length <= L
-  delta^e_d                       delta_e(d, H, I, s_last, P)
-  Phi, phi_k^t, j_k               phi(B, dom)
+  delta^e_d                       delta_e(d, H, I, prev, P)
+  Phi, phi_k^t, j_k^t             phi_of(B, dom)
   sigma                           P.sigma(g, B, phi)
   lambda_d, lambda^s_d            lam(d, B_k, g_k, P), lam_s(d, B_k, B_j, g_k, P)
   M^t = <B^t, phi^t, g^t>         Mission
@@ -33,7 +34,7 @@ AERIAL, SURFACE = "aerial", "surface"
 # ----------------------------------------------------------------------
 @dataclass(frozen=True)
 class Msg:
-    """One telemetry message m = (s, tau_pub, p, theta, v, vb)."""
+    """One telemetry message mu = (s, t_pub, p, att, vel, vb)."""
     seq: int
     t_pub: float
     p: tuple[float, float, float]        # lat, lon, alt
@@ -54,7 +55,7 @@ class State:
     att: tuple[float, float, float] = (0.0, 0.0, 0.0)
     vel: tuple[float, float, float] = (0.0, 0.0, 0.0)
     vb: float = 0.0
-    t: float = 0.0          # tau_pub of the message that produced this state
+    t: float = 0.0          # t_pub of the message that produced this state
     seq: int = -1           # sequence number of that message (-1 = no message)
     stale: bool = True      # True when delta_e extrapolated (no new telemetry)
 
@@ -78,7 +79,7 @@ Act = dict                               # A_k^t: {"tau", "alpha"[, "climb"]}
 class Phi:
     """phi^t: distance to the nearest same-domain agent and that agent."""
     dist: Mapping[str, float]            # phi_k^t
-    nb: Mapping[str, Optional[str]]      # j_k
+    nb: Mapping[str, Optional[str]]      # j_k^t
 
 
 @dataclass(frozen=True)
@@ -100,7 +101,10 @@ def fixed_waypoints(g_mission: Mapping[str, Goal], B, phi) -> Mapping[str, Goal]
 
 @dataclass(frozen=True)
 class Params:
-    """P = <(delta_d, lambda_d, lambda^s_d)_d, sigma, Phi, d_s, T_f, L>."""
+    """P = <(delta^e_d, lambda_d, lambda^s_d)_d, Phi, sigma, d_sep (field d_s), T_f, L>.
+
+    separation=False equals d_sep = 0 (E1, E2, E4).
+    """
     T_f: float = 0.125
     L: int = 8
     d_s: float = 12.0
@@ -168,9 +172,9 @@ def delta_e(d: str, H: tuple[State, ...], I: tuple[Msg, ...],
 def phi_of(B: Mapping[str, State], dom: Mapping[str, str]) -> Phi:
     """phi_k^t = min_{j != k, d_j = d_k} ||pi_h(p_k) - pi_h(p_j)||, over the agents in B^t.
 
-    j_k is the minimiser; ties go to the lowest agent id (ids are visited in
+    j_k^t is the minimiser; ties go to the lowest agent id (ids are visited in
     sorted order and only a strictly smaller distance replaces the best).
-    An agent alone in its domain gets phi_k^t = +inf and j_k = None, so
+    An agent alone in its domain gets phi_k^t = +inf and j_k^t = None, so
     lambda (not lambda^s) applies.
     """
     dist, nb = {}, {}
