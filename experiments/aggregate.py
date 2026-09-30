@@ -31,9 +31,10 @@ FILES = [
     ("e4_fidelity_noreg", "loss"),
     ("e5_resources", "n_agents"),
     ("e6_comparison", ("stack", "n_agents")),
+    ("e7_hybrid", "n_sitl"),
 ]
 # Fields that identify or parametrise a run; they are not metrics.
-CONFIG_FIELDS = {"n_agents", "regulator", "loss", "duration_s", "sep_m"}
+CONFIG_FIELDS = {"n_agents", "regulator", "loss", "duration_s", "sep_m", "n_sitl", "n_virtual"}
 FRAME_MS = 125.0
 HIST_BIN_MS, HIST_MAX_MS = 10.0, 300.0
 STREAK_BINS = ["0", "1", "2", ">=3"]
@@ -195,6 +196,31 @@ def summarise_timing(recs_by_rep):
     return p
 
 
+def summarise_e7(recs_by_rep):
+    """Pooled E7 statistics: latencies by agent kind and swarm-reaction latency
+    by the kinds of the receiver and of the triggering agent."""
+    recs = list(recs_by_rep.values())
+    p = {"frames_total": sum(r["frames"] for r in recs),
+         "overruns_total": sum(r["overruns"] for r in recs),
+         "frame_ms": pooled_stats(pool(recs_by_rep, "raw_frame_compute_ms"), (50, 99)),
+         "cmd_sent_total": sum(a["cmd_sent"] for r in recs for a in r["adapter"].values()),
+         "cmd_discarded_total": sum(a["cmd_discarded"] for r in recs for a in r["adapter"].values())}
+    for name, key in (("telemetry_lat_ms", "raw_telemetry_lat_ms"),
+                      ("actuation_lat_ms", "raw_actuation_lat_ms")):
+        p[name] = {k: pooled_stats([x for r in recs for x in r[key].get(k, [])], (50, 99))
+                   for k in ("physical", "virtual")}
+    classes = sorted({c for r in recs for c in r["raw_swarm_lat_ms"]})
+    sw = {}
+    for c in classes:
+        v = sorted(x for r in recs for x in r["raw_swarm_lat_ms"].get(c, []))
+        if v:
+            sw[c] = {"n": len(v), "runs": sum(1 for r in recs if r["raw_swarm_lat_ms"].get(c)),
+                     "p5": pctl(v, 5), "p50": pctl(v, 50), "p95": pctl(v, 95), "max": v[-1],
+                     "pct_le_Tf": 100.0 * sum(x <= FRAME_MS for x in v) / len(v)}
+    p["swarm_lat_ms"] = sw
+    return p
+
+
 def summarise_e3(recs_by_rep):
     p = {}
     lat = sorted(x for x in pool(recs_by_rep, "raw_swarm_lat_ms") if is_num(x))
@@ -297,6 +323,8 @@ def summarise(data):
                 c["pooled"] = summarise_e3(recs)
             elif stem.startswith("e4_"):
                 c["pooled"] = summarise_e4(recs)
+            elif stem == "e7_hybrid":
+                c["pooled"] = summarise_e7(recs)
             configs.append(c)
         entry = {"config_key": ",".join(key) if isinstance(key, tuple) else key,
                  "configs": configs}
@@ -500,6 +528,30 @@ def render_md(summary, meta):
             L += table(["N", "reps", "RTF", "min RTF (stats msg)", "steps/s",
                         "models received", "odom Hz per model (wall)", "monitor CPU %"], rows)
         L.append("")
+
+    e = summary.get("e7_hybrid")
+    if e:
+        L += ["## E7 Hybrid fleet: ArduRover SITL boats and virtual agents", "",
+              "Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter + local "
+              "broker bridged to the ground-station broker (core 1); ground station and "
+              "virtual agents on core 0. Latencies pooled over all runs (ms).", ""]
+        for c in e["configs"]:
+            q = c["pooled"]
+            L += [f"N_SITL = {c['n_sitl']}, runs = {c['n_reps']}: overruns/frames "
+                  f"{q['overruns_total']}/{q['frames_total']}, frame p99 {f(q['frame_ms']['p99'])}, "
+                  f"commands to the autopilot {q['cmd_sent_total']}, discarded (older than T_f) "
+                  f"{q['cmd_discarded_total']}.", ""]
+            rows = [[k, f(q["telemetry_lat_ms"][k]["p50"]), f(q["telemetry_lat_ms"][k]["p99"]),
+                     f(q["actuation_lat_ms"][k]["p50"]), f(q["actuation_lat_ms"][k]["p99"])]
+                    for k in ("physical", "virtual")]
+            L += table(["agent kind", "tele p50", "tele p99", "act p50", "act p99"], rows)
+            L.append("")
+            rows = [[k, v["runs"], v["n"], f(v["p5"], 1), f(v["p50"], 1), f(v["p95"], 1),
+                     f(v["max"], 1), f(v["pct_le_Tf"], 1)] for k, v in q["swarm_lat_ms"].items()]
+            L += ["Swarm-reaction latency by receiver <- trigger kind:", ""]
+            L += table(["receiver <- trigger", "runs", "commands", "p5", "p50", "p95", "max",
+                        "% <= 125 ms"], rows)
+            L.append("")
     return "\n".join(L)
 
 

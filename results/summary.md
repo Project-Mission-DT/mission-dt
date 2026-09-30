@@ -147,3 +147,23 @@ Gazebo real-time factor over the window (sim time / wall time; 1 ms physics step
 | 50 | 5 | 0.744 ± 0.014 | 0.192 ± 0.021 | 744 ± 14 | 50 ± 0 | 6.15 ± 0.12 | 2.7 ± 0.0 |
 | 100 | 5 | 0.329 ± 0.006 | 0.095 ± 0.012 | 329 ± 6 | 100 ± 0 | 2.71 ± 0.05 | 2.8 ± 0.0 |
 
+## E7 Hybrid fleet: ArduRover SITL boats and virtual agents
+
+Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter + local broker bridged to the ground-station broker (core 1); ground station and virtual agents on core 0. Latencies pooled over all runs (ms).
+
+N_SITL = 2, runs = 5: overruns/frames 0/1600, frame p99 0.88, commands to the autopilot 3200, discarded (older than T_f) 0.
+
+| agent kind | tele p50 | tele p99 | act p50 | act p99 |
+|---|---|---|---|---|
+| physical | 0.47 | 0.95 | 0.85 | 1.57 |
+| virtual | 0.47 | 1.68 | 0.83 | 1.52 |
+
+Swarm-reaction latency by receiver <- trigger kind:
+
+| receiver <- trigger | runs | commands | p5 | p50 | p95 | max | % <= 125 ms |
+|---|---|---|---|---|---|---|---|
+| physical<-physical | 2 | 161 | 11.4 | 64.2 | 115.6 | 124.2 | 100.0 |
+| physical<-virtual | 5 | 2175 | 7.1 | 61.8 | 115.9 | 123.7 | 100.0 |
+| virtual<-physical | 5 | 2653 | 7.9 | 60.8 | 115.5 | 132.2 | 99.7 |
+| virtual<-virtual | 5 | 5913 | 7.1 | 61.8 | 116.4 | 124.5 | 100.0 |
+

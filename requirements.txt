@@ -1,4 +1,5 @@
 paho-mqtt>=2.1
+pymavlink>=2.4   # MAVLink-to-MQTT adapter (mission_dt/mavlink_adapter.py, E7)
 matplotlib>=3.8
 # 3D visualizer only (local machine with display):
 # ursina>=7.0

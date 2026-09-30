@@ -22,6 +22,7 @@ Files of one repetition directory:
 | `e4_fidelity_noreg.json` | E4 with the regulator off |
 | `e5_resources.json` | E5 CPU and peak memory of the Mission-DT process, N = 0, 10, 50, 100 |
 | `e6_comparison.json` | E6 CPU and memory per process of Mission-DT (MQTT), ROS 2 and Gazebo, N = 10, 50, 100 |
+| `e7_hybrid.json` | E7 hybrid fleet: 2 ArduRover SITL boats and 8 virtual agents |
 
 The `raw_*` arrays hold every sample (ms). In E4, each row of `rows_dom_m_err_hold` holds the domain, the stale streak m, the position error of the twin (m) and the position error of a hold of the last received state (m) for one agent frame. The main `README.md` defines frame time, release jitter and CPU accounting.
 
@@ -30,3 +31,5 @@ E6 (`e6_comparison.json` in `results/rep1/` to `results/rep5/`) ran after E1 to 
 Platform of `results/rep*/`, `results/other_instance/`, `results/single_run/` and `results/rerun_client_nagle/`: Linux VM (kernel 6.18), Intel Xeon 2.10 GHz, 2 vCPU, broker and experiments pinned to core 0 (`taskset -c 0`), Python 3.11.15 (E1 to E5), paho-mqtt 2.1.0, Mosquitto 2.0.18.
 
 E3 without the regulator (agents publish at 50 Hz): `results/rep<r>/e3_swarm_noreg.json` (N = 10, 25, 50, five runs) and `results/e3_noreg_n50_extra/run1..run5/e3_swarm_noreg.json` (five more runs at N = 50). At N = 50 the 2,500 messages per second saturate the shared core, and the MQTT queues grew in 4 of these 10 runs (latencies of 1.1 s to 31.7 s). Command: `taskset -c 0 python experiments/run_e3.py --no-regulator [N ...]`.
+
+E7 (hybrid fleet): `results/rep<r>/e7_hybrid.json`, five runs of `experiments/run_e7.py` (2 ArduRover 4.7.1 SITL boats, motorboat model, and 8 virtual surface agents; console log `logs/e7_reps.log`). Each record holds the frame times, the telemetry and actuation latencies by agent kind (`raw_telemetry_lat_ms`, `raw_actuation_lat_ms`, keys `physical` and `virtual`), the swarm-reaction latencies by receiver and trigger kind (`raw_swarm_lat_ms`, e.g. `physical<-virtual`), the adapter counters (`adapter.<id>.cmd_sent`, `cmd_discarded`, `sample_age_ms`), and the minimum separation and path of each SITL boat. Platform: the Linux VM of `results/rep*/`, ground station and virtual agents on core 0, SITL instances, adapters, and local brokers on core 1, Python 3.11.15, pymavlink 2.4.50.

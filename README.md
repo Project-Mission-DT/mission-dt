@@ -31,7 +31,7 @@ of the paper.
 |---|---|---|
 | Mission state | `M^t = <B^t, φ^t, g^t>`: agent states, Mission Context, and agent goals. The mission, and not a single vehicle, is the twinned entity. | `mission_dt/model.py` |
 | Mission transition `Δ^e` | Runs once per frame of `T_f = 125 ms` and composes `δ^e` (state update, with dead reckoning when an agent sends no new telemetry), `Φ` (context), `σ` (goals), and `λ` (actuation), in this order. | `mission_dt/model.py` |
-| Agents | Each agent is a physical vehicle (ArduPilot with a MAVLink-to-MQTT adapter) or a virtual agent (vehicle-level emulator with its own kinematic model, state, and MQTT connection). The core applies the same `Δ^e` to both kinds. A mission with virtual agents only is a digital model. | `mission_dt/agents.py` |
+| Agents | Each agent is a physical vehicle (ArduPilot with the MAVLink-to-MQTT adapter of `mission_dt/mavlink_adapter.py`) or a virtual agent (vehicle-level emulator with its own kinematic model, state, and MQTT connection). The core applies the same `Δ^e` to both kinds. A mission with virtual agents only is a digital model. | `mission_dt/agents.py` |
 | Mission Context `φ^t` | For each agent k, the horizontal distance `φ_k^t` to the nearest agent `j_k^t` of the same domain. When `φ_k^t` falls below `d_sep`, `λ` sends a corrective command (separation rule). | `mission_dt/model.py` |
 | Bandwidth regulator | Each agent steps its model at 50 Hz and publishes one of every six cycles (8.33 Hz, 6.0x less uplink traffic). | `mission_dt/agents.py` |
 | MQTT I/O | The core keeps, per agent, the pending telemetry message with the highest sequence number, runs `Δ^e`, and publishes the actuation of each agent. | `mission_dt/core.py` |
@@ -39,21 +39,22 @@ of the paper.
 The symbols follow Table II and Eqs. (1) to (6) of the paper.
 
 ## Scope of the evaluation
-The paper evaluates the Python runtime with virtual agents only, on one
-virtual CPU, with five runs per configuration and independent packet loss.
-The separation rule is the only collective behavior, and each agent follows
-one waypoint fixed at mission start. The evaluation leaves out physical
-vehicles with the MAVLink-to-MQTT adapter and the broker bridge, timing
+The paper evaluates the Python runtime with virtual agents (E1 to E7) and
+ArduRover software-in-the-loop (SITL) boats (E7), with five runs per
+configuration and independent packet loss. The separation rule is the only
+collective behavior, and each agent follows one waypoint fixed at mission
+start. The evaluation leaves out field tests with physical vehicles, timing
 guarantees, wireless links with bursty loss, and a comparison with AirSim.
 
 ## Requirements
 | Component | Version of the paper runs |
 |---|---|
-| Python | 3.11.15 for E1 to E5, 3.12.3 for E6 (rclpy of ROS 2 Jazzy needs Python 3.12). Python 3.10 or later runs the core. |
+| Python | 3.11.15 for E1 to E5 and E7, 3.12.3 for E6 (rclpy of ROS 2 Jazzy needs Python 3.12). Python 3.10 or later runs the core. |
 | Mosquitto | 2.0.18, started with `mosquitto -c mosquitto.conf` (`set_tcp_nodelay true`) |
-| Python packages | `pip install -r requirements.txt` (paho-mqtt 2.1.0, matplotlib) |
+| Python packages | `pip install -r requirements.txt` (paho-mqtt 2.1.0, matplotlib, pymavlink 2.4.50 for the adapter) |
 | 3D view (machine with GPU and display) | `pip install ursina imageio imageio-ffmpeg` |
 | Terminal panel with colors (optional) | `pip install rich` |
+| E7 only | ArduRover 4.7.1 SITL binary (`SITL_x86_64_linux_gnu/ardurover` of firmware.ardupilot.org, Rover stable), in `PATH` or in `MDT_ARDUROVER` |
 | E6 only | ROS 2 Jazzy (rclpy 7.1.12, `rmw_fastrtps_cpp` 8.4.4, Fast DDS 2.14.6) and Gazebo Harmonic (gz-sim 8.15.0, gz-physics 7.8.0 with DART, gz-transport 13.6.0) |
 
 ## Quick start
@@ -156,6 +157,7 @@ keeps its own configuration.
 | E4 without the regulator | RQ4 | `python experiments/run_e4.py --no-regulator` | `e4_fidelity_noreg.json` |
 | E5 CPU and peak memory of the core process, N = 0, 10, 50, 100 | RQ5 | `python experiments/run_e5.py` | `e5_resources.json` |
 | E6 Mission-DT vs. ROS 2 vs. Gazebo, N = 10, 50, 100 (outside `run_all.sh`) | RQ5 | `taskset -c 0 python3.12 experiments/run_e6.py` | `e6_comparison.json` |
+| E7 hybrid fleet: 2 ArduRover SITL boats + 8 virtual agents (outside `run_all.sh`) | RQ3 | `python experiments/run_e7.py [n_sitl n_virtual]` | `e7_hybrid.json` |
 | Summary over runs | | `python experiments/aggregate.py results/rep1 ... results/rep5` | `summary.json`, `summary.md` |
 | Values and PNGs of Figs. 3, 5, 6 | | `python experiments/paper_figures.py` | `doc/figures/` |
 
@@ -175,6 +177,22 @@ free.
 | `ros2` | mission node, agents | rclpy node that subscribes `/mdt/<id>/telemetry`, publishes `/mdt/<id>/actuation` (`std_msgs/String` with the JSON payloads of the MQTT stack), and calls `Delta_e` of `model.py` in a 125 ms timer of a `SingleThreadedExecutor`. The agents process runs N `VirtualAgent` threads (same state, kinematics, 50 Hz step, and 8.33 Hz telemetry) with a ROS 2 publisher and subscription in place of the MQTT client. QoS best effort, keep last 1, volatile; default RMW; `ROS_DOMAIN_ID=42`, discovery range localhost. The mission node knows the fleet from the start (no registration topic). |
 | `gazebo` | gz sim server | `gz sim -s -r --headless-rendering` with a generated SDF world: N box vehicles on the goal grid, `VelocityControl` with a constant twist (2 m/s surface, 12 m/s aerial), and `OdometryPublisher` at 8.33 Hz; Physics system only, no gravity, 1 ms step, target real-time factor 1. No mission layer. A monitor process subscribes to `/world/e6/stats` and to every odometry topic; the table reports its CPU and memory as `monitor`, outside the stack total. |
 
+### E7 setup
+`experiments/run_e7.py` repeats the E3 scenario (circle of radius 40 m,
+antipodal goals, `d_sep` = 12 m, 40 s) with ten surface agents. Two agents
+are physical agents; the script starts, for each one:
+
+| Component | Configuration |
+|---|---|
+| ArduRover SITL | `ardurover -w -M motorboat -I <i> --home <lat>,<lon>,0,<yaw> --defaults configs/sitl_boat.parm` (FRAME_CLASS 2 = boat, WP_SPEED and CRUISE_SPEED 2 m/s, SCHED_LOOP_RATE 100) |
+| MAVLink-to-MQTT adapter | `python -m mission_dt.mavlink_adapter --id boat<i> --mavlink tcp:127.0.0.1:<5760+10i> --mqtt-port <1884+i>`: waits for a valid EKF position, requests GLOBAL_POSITION_INT and ATTITUDE at 50 Hz, switches to GUIDED, arms, registers as `kind: physical`, publishes one of every six position samples (8.33 Hz), and passes each command as SET_ATTITUDE_TARGET (yaw rate 0.6·alpha rad/s, thrust tau, i.e. speed 2·tau m/s); commands older than `T_f` are discarded |
+| Local broker | Mosquitto on port 1884+i with a bridge to the ground-station broker: telemetry `out 0`, registration `out 1`, actuation `in 0` |
+
+The ground-station broker, the mission core, and the eight virtual agents run
+on core 0; the SITL instances, the adapters, and the local brokers run on
+core 1 (vehicle side). The script waits for the retained registrations of
+both SITL boats (about 45 s of EKF start-up) before the mission starts.
+
 ### Platform of the paper runs
 | Item | Value |
 |---|---|
@@ -183,6 +201,7 @@ free.
 | Broker | Mosquitto 2.0.18 with `mosquitto.conf` (`set_tcp_nodelay true`) |
 | Client sockets | `TCP_NODELAY` on the core and agent MQTT sockets |
 | Runs | Five per configuration (`results/rep1/` to `results/rep5/`); five more at N = 50 for E3 at 50 Hz |
+| E7 | Vehicle side (SITL, adapters, local brokers) on core 1; ArduRover 4.7.1 SITL, pymavlink 2.4.50 |
 
 ## Measurements
 | Quantity | Definition |
@@ -209,7 +228,7 @@ All values come from `results/rep1/` to `results/rep5/` (and
 |---|---|
 | RQ1 | 0 frame overruns in 9,600 frames up to N = 100; at N = 100 the pooled 99th percentile of the frame time is 30.4 ms and the maximum 46.2 ms, 78.8 ms below `T_f`. |
 | RQ2 | The regulator cuts uplink traffic by 5.99 ± 0.00x and redundant samples by 131.92 ± 5.06x (N = 10). |
-| RQ3 | At 8.33 Hz, the median swarm-reaction latency is 61 to 65 ms (about half a frame) for N = 10 to 50, with a maximum of 287.6 ms. At 50 Hz, the median falls to 12, 13, and 21 ms, and at N = 50 the MQTT queues grew in 4 of 10 runs. |
+| RQ3 | At 8.33 Hz, the median swarm-reaction latency is 61 to 65 ms (about half a frame) for N = 10 to 50, with a maximum of 287.6 ms. At 50 Hz, the median falls to 12, 13, and 21 ms, and at N = 50 the MQTT queues grew in 4 of 10 runs. In the hybrid fleet (E7), the median is 60.8 to 64.2 ms between SITL boats and virtual agents in both directions, with at least 99.7% within `T_f`. |
 | RQ4 | Position RMSE of 0.62 to 0.63 m up to 10% loss, maximum drift 3.34 m; 0.18 to 0.20 m without the regulator. |
 | RQ5 | At N = 100 the core process uses 12.1% of one core and 24.8 MiB (E5); the Mission-DT stack uses 35.4% and 110.1 MiB against 51.8% and 207.8 MiB for ROS 2 (32% less CPU, 47% less memory) (E6). |
 
@@ -308,6 +327,31 @@ Both mission stacks completed all frames within `T_f`. Gazebo saturates the
 core from N = 50, so its CPU value is a lower bound. E1 to E5 ran Python 3.11
 and E6 Python 3.12, so the core values of E5 and E6 differ.
 
+### E7 Hybrid fleet with ArduRover SITL boats (RQ3)
+Five runs of 40 s (1,600 frames) with 2 SITL boats and 8 virtual agents, all
+surface agents. Latencies pooled over the five runs.
+
+| Metric | Value |
+|---|---|
+| Frame overruns | 0 of 1,600 (frame p99 0.88 ms) |
+| Commands passed by the adapters to the autopilots | 3,200 |
+| Commands discarded (older than `T_f`) | 0 |
+| Telemetry latency, SITL boats (via local broker and bridge) | p50 0.47 ms, p99 0.95 ms |
+| Telemetry latency, virtual agents | p50 0.47 ms, p99 1.68 ms |
+| Actuation latency, SITL boats / virtual agents | p50 0.85 / 0.83 ms, p99 1.57 / 1.52 ms |
+
+| Receiver ← trigger | Runs | Commands | p5 (ms) | Median (ms) | p95 (ms) | Max (ms) | ≤ 125 ms (%) |
+|---|---|---|---|---|---|---|---|
+| SITL ← SITL | 2 | 161 | 11.4 | 64.2 | 115.6 | 124.2 | 100.0 |
+| SITL ← virtual | 5 | 2,175 | 7.1 | 61.8 | 115.9 | 123.7 | 100.0 |
+| virtual ← SITL | 5 | 2,653 | 7.9 | 60.8 | 115.5 | 132.2 | 99.7 |
+| virtual ← virtual | 5 | 5,913 | 7.1 | 61.8 | 116.4 | 124.5 | 100.0 |
+
+The SITL boats triggered or received corrective commands in every run; the
+two SITL boats came within `d_sep` of each other in two of the five runs.
+SITL simulates the vehicle and its sensors, and the bridge runs over the
+loopback interface, so E7 excludes the radio link.
+
 ### Original code (submitted version) on the same host
 `results/linux_original_code/` holds five runs of the code of the submitted
 paper (branch `main`) on the host above, with the default Mosquitto
@@ -342,10 +386,10 @@ python -m pytest tests
 ## Repository layout
 | Path | Content |
 |---|---|
-| `mission_dt/` | `model.py` (`Δ^e` and its functions), `core.py` (MQTT I/O and frame loop), `agents.py` (virtual agents), `core_orig.py` (core of the submitted version) |
-| `experiments/` | `run_experiments.py` (E1, E2), `run_e3.py`, `run_e4.py`, `run_e5.py`, `run_e6.py`, `aggregate.py`, `paper_figures.py`, `make_figures.py`, `demo_mission.py`, `staged_photo.py`, `panel.py`, `clear_retained.py` |
+| `mission_dt/` | `model.py` (`Δ^e` and its functions), `core.py` (MQTT I/O and frame loop), `agents.py` (virtual agents), `mavlink_adapter.py` (MAVLink-to-MQTT adapter of a physical agent), `core_orig.py` (core of the submitted version) |
+| `experiments/` | `run_experiments.py` (E1, E2), `run_e3.py`, `run_e4.py`, `run_e5.py`, `run_e6.py`, `run_e7.py`, `aggregate.py`, `paper_figures.py`, `make_figures.py`, `demo_mission.py`, `staged_photo.py`, `panel.py`, `clear_retained.py` |
 | `viz/` | 3D mission view (Ursina) |
-| `configs/` | Mission configuration files |
+| `configs/` | Mission configuration files; `sitl_boat.parm` (ArduRover SITL defaults of E7) |
 | `results/` | Raw data of every run (JSON), `summary.json` and `summary.md`, logs; see `results/README.md` |
 | `doc/figures/` | PNGs and values of Figs. 3, 5, and 6 |
 | `doc/MissionDT_Manual_v02.pdf` | User manual of the submitted version |
@@ -357,12 +401,19 @@ python -m pytest tests
 | `requirements.txt` | Python dependencies |
 
 ## Connecting real vehicles
-A MAVLink-to-MQTT adapter on the companion computer of each vehicle (e.g.
-Raspberry Pi 4 with ArduPilot) publishes telemetry on
-`missiondt/agents/<id>/telemetry` and consumes `missiondt/agents/<id>/actuation`.
-A local broker on the vehicle bridges to the ground station over Wi-Fi
-(Section III and Fig. 2 of the paper). The repository does not include the
-adapter yet.
+Run `mission_dt/mavlink_adapter.py` on the companion computer of each vehicle
+(e.g. Raspberry Pi 4 with a NAVIO2 board and ArduPilot), connected to the
+autopilot and to the local broker of the vehicle:
+```bash
+python -m mission_dt.mavlink_adapter --id boat1 --mavlink udp:127.0.0.1:14550 --mqtt-port 1883
+```
+The adapter publishes telemetry on `missiondt/agents/<id>/telemetry` and
+consumes `missiondt/agents/<id>/actuation`. The local broker bridges these
+topics to the ground-station broker over Wi-Fi (Section III and Fig. 2 of the
+paper), as in the `local.conf` that `run_e7.py` writes. WP_SPEED sets the speed
+at `tau` = 1. The geofence and failsafe functions of the autopilot stay active.
+The repository tests the adapter with ArduRover SITL (E7); field tests with the
+Fleet-DT boats are future work.
 
 ## Citation
 ```bibtex
