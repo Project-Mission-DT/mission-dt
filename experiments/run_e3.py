@@ -37,7 +37,7 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
+def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, regulator=True):
     dt = MissionDT(swarm=True, sep_m=sep_m)
     agents, goals = [], {}
     for i in range(n_agents):
@@ -45,7 +45,8 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
         dlat = radius_m * math.cos(th) / 111_320.0
         dlon = radius_m * math.sin(th) / (111_320.0 * math.cos(math.radians(BASE_LAT)))
         dom = "aerial" if i % 2 else "surface"
-        a = VirtualAgent(f"sw{i:03d}", domain=dom, duration_s=duration + 2)
+        a = VirtualAgent(f"sw{i:03d}", domain=dom, duration_s=duration + 2,
+                         regulator=regulator)
         a.lat, a.lon = BASE_LAT + dlat, BASE_LON + dlon
         a.yaw = th + math.pi          # facing the center
         agents.append(a)
@@ -60,6 +61,7 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
     lat_sw = [x for a in agents for x in a.swarm_latencies]
     return {
         "n_agents": n_agents, "duration_s": duration, "sep_m": sep_m,
+        "regulator": regulator,
         "frames": dt.frames, "overruns": dt.frame_overruns,
         "avoid_events": dt.avoid_events,
         "frame_ms": {"mean": st.mean(dt.frame_compute) * 1e3,
@@ -84,15 +86,19 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0):
 
 
 if __name__ == "__main__":
-    sizes = [int(x) for x in sys.argv[1:]] or [10, 25, 50]
-    fn = f"{RES}/e3_swarm.json"
+    # --no-regulator: agents publish every 50 Hz sample (E3 at 50 Hz),
+    # results in e3_swarm_noreg.json
+    reg = "--no-regulator" not in sys.argv
+    sizes = [int(x) for x in sys.argv[1:] if not x.startswith("--")] or [10, 25, 50]
+    name = "e3_swarm.json" if reg else "e3_swarm_noreg.json"
+    fn = f"{RES}/{name}"
     out = json.load(open(fn)) if os.path.exists(fn) else []
     out = [r for r in out if r["n_agents"] not in sizes]
     for n in sizes:
-        print(f"[E3] N={n} ...", flush=True)
-        r = run_e3(n)
+        print(f"[E3] N={n} regulator={'ON' if reg else 'OFF'} ...", flush=True)
+        r = run_e3(n, regulator=reg)
         out.append(r)
-        json.dump(out, open(f"{RES}/e3_swarm.json", "w"))
+        json.dump(out, open(fn, "w"))
         s = r["swarm_lat_ms"]
         print(f"     events={s['n']} lat p50={s['p50']:.0f}ms p95={s['p95']:.0f}ms "
               f"p99={s['p99']:.0f}ms max={s['max']:.0f}ms | "
