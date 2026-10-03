@@ -105,9 +105,9 @@ def freeze(agent, lat, lon, alt, yaw):
     return (ghost_lat, ghost_lon, alt)
 
 
-# compact diagonal layout: main cluster -> near-collision bridge -> calm
+# compact diagonal layout: main cluster -> near-collision pair -> calm
 MAIN_E, MAIN_N = 0.0, 0.0
-BRIDGE_E, BRIDGE_N = 35.0, -18.0
+PAIR_E, PAIR_N = 35.0, -18.0
 CALM_E, CALM_N = 62.0, -34.0
 
 checkpoints = {
@@ -143,21 +143,21 @@ lat, lon = offset(MAIN_E + 18, MAIN_N + 18)
 goals["aer01"] = freeze(a, lat, lon, 15.0, -math.pi / 2)
 agents.append(a)
 
-# --- bridge pair: near-collision surface duo, PERPENDICULAR headings -----
+# --- middle pair: near-collision surface duo, PERPENDICULAR headings -----
 # ~2 m apart (safely under the 3 m red threshold); one heading east, one
 # heading north, so the crossing reads as two distinct hulls (a "T"),
 # not one fused shape.
 a = VirtualAgent("sur03", domain="surface", duration_s=3600)
-lat, lon = offset(BRIDGE_E - 1.0, BRIDGE_N)
+lat, lon = offset(PAIR_E - 1.0, PAIR_N)
 goals["sur03"] = freeze(a, lat, lon, 0.0, math.pi / 2)        # facing east
 agents.append(a)
 
 a = VirtualAgent("sur04", domain="surface", duration_s=3600)
-lat, lon = offset(BRIDGE_E + 1.0, BRIDGE_N)
+lat, lon = offset(PAIR_E + 1.0, PAIR_N)
 goals["sur04"] = freeze(a, lat, lon, 0.0, 0.0)                # facing north
 agents.append(a)
 
-# --- calm, normal-operation agents beyond the bridge pair -----------------
+# --- calm, normal-operation agents beyond the middle pair -----------------
 a = VirtualAgent("sur02", domain="surface", duration_s=3600)
 lat, lon = offset(CALM_E, CALM_N)
 goals["sur02"] = freeze(a, lat, lon, 0.0, math.pi / 4)

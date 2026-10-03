@@ -1,0 +1,701 @@
+[
+ {
+  "stack": "mission_dt",
+  "n_agents": 10,
+  "window_s": 30.001278271000047,
+  "processes": {
+   "core": {
+    "cpu_s": 0.4,
+    "cpu_pct": 1.33327652370949,
+    "peak_rss_mib": 25.41015625,
+    "rss_end_mib": 25.41015625,
+    "threads": 3,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 0.75,
+    "cpu_pct": 2.4998934819552936,
+    "peak_rss_mib": 29.1484375,
+    "rss_end_mib": 29.1484375,
+    "threads": 22,
+    "n_processes": 1
+   },
+   "broker": {
+    "cpu_s": 0.1,
+    "cpu_pct": 0.3333191309273725,
+    "peak_rss_mib": 7.390625,
+    "rss_end_mib": 7.390625,
+    "threads": 1,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 4.166489136592156,
+   "peak_rss_mib": 61.94921875,
+   "rss_end_mib": 61.94921875
+  },
+  "harness_cpu_pct": 0.0,
+  "mission": {
+   "frames": 240,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 0.4568237166533133,
+    "p50": 0.42330800079071196,
+    "p99": 0.7678459996895981,
+    "max": 0.8243800002674107,
+    "n": 240
+   },
+   "release_jitter_ms": {
+    "mean": 0.12207245864980602,
+    "p50": 0.11898899992957013,
+    "p99": 0.19360100031917682,
+    "max": 0.19773700023506535,
+    "n": 240
+   },
+   "telemetry_msgs": 2500,
+   "telemetry_agents_received": 10,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.332975650908425,
+   "telemetry_lat_ms": {
+    "mean": 0.7386412620544434,
+    "p50": 0.6399154663085938,
+    "p99": 2.0780563354492188,
+    "max": 3.606557846069336,
+    "n": 2500
+   },
+   "transport": "paho-mqtt 2.1.0"
+  },
+  "agents": {
+   "actuation_msgs": 2410,
+   "actuation_agents_received": 10,
+   "actuation_min_per_agent": 241,
+   "actuation_max_per_agent": 241,
+   "telemetry_sent": 2500,
+   "telemetry_rate_hz_per_agent": 8.332911928810734,
+   "telemetry_bytes_mean": 567.7937125748502,
+   "actuation_lat_ms": {
+    "mean": 0.8826191494573696,
+    "p50": 0.8449554443359375,
+    "p99": 1.8548965454101562,
+    "max": 3.099679946899414,
+    "n": 2410
+   }
+  },
+  "transport": "paho-mqtt 2.1.0",
+  "broker": "mosquitto (mosquitto.conf)",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "ros2",
+  "n_agents": 10,
+  "window_s": 30.00067854000008,
+  "processes": {
+   "core": {
+    "cpu_s": 1.1099999999999999,
+    "cpu_pct": 3.69991631529277,
+    "peak_rss_mib": 69.546875,
+    "rss_end_mib": 69.546875,
+    "threads": 15,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 1.0100000000000002,
+    "cpu_pct": 3.366590521122252,
+    "peak_rss_mib": 74.2109375,
+    "rss_end_mib": 74.2109375,
+    "threads": 26,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 7.066506836415022,
+   "peak_rss_mib": 143.7578125,
+   "rss_end_mib": 143.7578125
+  },
+  "harness_cpu_pct": 0.0,
+  "mission": {
+   "frames": 241,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 1.9717246514383493,
+    "p50": 1.6398609996031155,
+    "p99": 6.774998999389936,
+    "max": 7.567530999949668,
+    "n": 241
+   },
+   "release_jitter_ms": {
+    "mean": 0.37547418252334674,
+    "p50": 0.34819099982996704,
+    "p99": 0.5397160002758028,
+    "max": 1.3749709996773163,
+    "n": 241
+   },
+   "telemetry_msgs": 2500,
+   "telemetry_agents_received": 10,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.332231806178257,
+   "telemetry_lat_ms": {
+    "mean": 0.8064249992370606,
+    "p50": 0.7040500640869141,
+    "p99": 2.0694732666015625,
+    "max": 6.832599639892578,
+    "n": 2500
+   },
+   "transport": "rmw_fastrtps_cpp"
+  },
+  "agents": {
+   "actuation_msgs": 2400,
+   "actuation_agents_received": 10,
+   "actuation_min_per_agent": 240,
+   "actuation_max_per_agent": 240,
+   "telemetry_sent": 2500,
+   "telemetry_rate_hz_per_agent": 8.333131297120435,
+   "telemetry_bytes_mean": 567.8592814371258,
+   "actuation_lat_ms": {
+    "mean": 1.0178716977437336,
+    "p50": 0.9787082672119141,
+    "p99": 2.4518966674804688,
+    "max": 4.541635513305664,
+    "n": 2400
+   },
+   "discovery_s": 0.40046747399992455,
+   "matched_agents": 10
+  },
+  "transport": "rmw_fastrtps_cpp",
+  "ros_distro": "jazzy",
+  "qos": "best_effort, keep_last 1, volatile",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "gazebo",
+  "n_agents": 10,
+  "window_s": 30.00227410000025,
+  "processes": {
+   "gz_sim": {
+    "cpu_s": 14.06,
+    "cpu_pct": 46.863114286392985,
+    "peak_rss_mib": 146.578125,
+    "rss_end_mib": 146.578125,
+    "threads": 28,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 46.863114286392985,
+   "peak_rss_mib": 146.578125,
+   "rss_end_mib": 146.578125
+  },
+  "harness_cpu_pct": 0.0,
+  "monitor": {
+   "cpu_s": 0.58,
+   "cpu_pct": 1.9331867913305782,
+   "peak_rss_mib": 29.109375,
+   "rss_end_mib": 29.109375,
+   "threads": 8,
+   "n_processes": 1
+  },
+  "gazebo": {
+   "rtf": 0.9990527735271048,
+   "rtf_stats_mean": 1.0182741497416081,
+   "rtf_stats_min": 0.5075946308670325,
+   "sim_s": 29.936999999999998,
+   "real_s": 29.965384005000004,
+   "steps_per_s": 999.0527735271048,
+   "step_ms": 1.0,
+   "startup_s": 2.2018819080003595,
+   "odom_connect_s": 0.20009512800061202,
+   "odom_subscriptions_renewed": 0,
+   "odom_msgs": 2480,
+   "odom_models_received": 10,
+   "odom_min_per_model": 248,
+   "odom_max_per_model": 248,
+   "odom_rate_hz_per_model": 8.266100631373675
+  },
+  "gz_sim_version": "8.15.0",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "mission_dt",
+  "n_agents": 50,
+  "window_s": 30.00085801499972,
+  "processes": {
+   "core": {
+    "cpu_s": 1.6799999999999997,
+    "cpu_pct": 5.599839841780656,
+    "peak_rss_mib": 26.3046875,
+    "rss_end_mib": 26.3046875,
+    "threads": 3,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 3.31,
+    "cpu_pct": 11.033017783508319,
+    "peak_rss_mib": 49.57421875,
+    "rss_end_mib": 49.57421875,
+    "threads": 102,
+    "n_processes": 1
+   },
+   "broker": {
+    "cpu_s": 0.36,
+    "cpu_pct": 1.1999656803815695,
+    "peak_rss_mib": 7.44921875,
+    "rss_end_mib": 7.44921875,
+    "threads": 1,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 17.832823305670544,
+   "peak_rss_mib": 83.328125,
+   "rss_end_mib": 83.328125
+  },
+  "harness_cpu_pct": 0.0,
+  "mission": {
+   "frames": 240,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 4.176428241612484,
+    "p50": 3.806222999628517,
+    "p99": 16.643163000480854,
+    "max": 20.347108999885677,
+    "n": 240
+   },
+   "release_jitter_ms": {
+    "mean": 0.13339452506594776,
+    "p50": 0.09742400015966268,
+    "p99": 1.1719340000126977,
+    "max": 2.3089759997674264,
+    "n": 240
+   },
+   "telemetry_msgs": 12500,
+   "telemetry_agents_received": 50,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.33322660247831,
+   "telemetry_lat_ms": {
+    "mean": 1.2363039970397949,
+    "p50": 0.6682872772216797,
+    "p99": 9.393930435180664,
+    "max": 23.726701736450195,
+    "n": 12500
+   },
+   "transport": "paho-mqtt 2.1.0"
+  },
+  "agents": {
+   "actuation_msgs": 12000,
+   "actuation_agents_received": 50,
+   "actuation_min_per_agent": 240,
+   "actuation_max_per_agent": 240,
+   "telemetry_sent": 12500,
+   "telemetry_rate_hz_per_agent": 8.33332833833635,
+   "telemetry_bytes_mean": 567.9428143712574,
+   "actuation_lat_ms": {
+    "mean": 2.968395153681437,
+    "p50": 2.755880355834961,
+    "p99": 9.592533111572266,
+    "max": 15.469789505004883,
+    "n": 12000
+   }
+  },
+  "transport": "paho-mqtt 2.1.0",
+  "broker": "mosquitto (mosquitto.conf)",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "ros2",
+  "n_agents": 50,
+  "window_s": 30.000312612000016,
+  "processes": {
+   "core": {
+    "cpu_s": 5.01,
+    "cpu_pct": 16.699825981133337,
+    "peak_rss_mib": 75.15625,
+    "rss_end_mib": 75.15625,
+    "threads": 15,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 4.140000000000001,
+    "cpu_pct": 13.799856199978448,
+    "peak_rss_mib": 97.03125,
+    "rss_end_mib": 97.03125,
+    "threads": 66,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 30.499682181111787,
+   "peak_rss_mib": 172.1875,
+   "rss_end_mib": 172.1875
+  },
+  "harness_cpu_pct": 0.0,
+  "mission": {
+   "frames": 241,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 6.114840423226224,
+    "p50": 5.903768000280252,
+    "p99": 10.458195999490272,
+    "max": 11.605579999923066,
+    "n": 241
+   },
+   "release_jitter_ms": {
+    "mean": 1.2011793653782736,
+    "p50": 0.9458780004933942,
+    "p99": 4.295843999898352,
+    "max": 11.977855000623094,
+    "n": 241
+   },
+   "telemetry_msgs": 12500,
+   "telemetry_agents_received": 50,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.329491173391395,
+   "telemetry_lat_ms": {
+    "mean": 3.321167411804199,
+    "p50": 2.5327205657958984,
+    "p99": 12.784004211425781,
+    "max": 19.859790802001953,
+    "n": 12500
+   },
+   "transport": "rmw_fastrtps_cpp"
+  },
+  "agents": {
+   "actuation_msgs": 12000,
+   "actuation_agents_received": 50,
+   "actuation_min_per_agent": 240,
+   "actuation_max_per_agent": 240,
+   "telemetry_sent": 12500,
+   "telemetry_rate_hz_per_agent": 8.332813513538651,
+   "telemetry_bytes_mean": 567.7565269461078,
+   "actuation_lat_ms": {
+    "mean": 4.606150805950165,
+    "p50": 4.439592361450195,
+    "p99": 13.356924057006836,
+    "max": 16.31784439086914,
+    "n": 12000
+   },
+   "discovery_s": 0.4011425090002376,
+   "matched_agents": 50
+  },
+  "transport": "rmw_fastrtps_cpp",
+  "ros_distro": "jazzy",
+  "qos": "best_effort, keep_last 1, volatile",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "gazebo",
+  "n_agents": 50,
+  "window_s": 30.00274536300003,
+  "processes": {
+   "gz_sim": {
+    "cpu_s": 29.18,
+    "cpu_pct": 97.25776640422161,
+    "peak_rss_mib": 263.41796875,
+    "rss_end_mib": 263.41796875,
+    "threads": 108,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 97.25776640422161,
+   "peak_rss_mib": 263.41796875,
+   "rss_end_mib": 263.41796875
+  },
+  "harness_cpu_pct": 0.033330283209123235,
+  "monitor": {
+   "cpu_s": 0.8200000000000001,
+   "cpu_pct": 2.7330832231481055,
+   "peak_rss_mib": 29.23828125,
+   "rss_end_mib": 29.23828125,
+   "threads": 8,
+   "n_processes": 1
+  },
+  "gazebo": {
+   "rtf": 0.7597116239912323,
+   "rtf_stats_mean": 0.7771197543540683,
+   "rtf_stats_min": 0.20524903892137525,
+   "sim_s": 22.792,
+   "real_s": 30.000857272999998,
+   "steps_per_s": 759.7116239912323,
+   "step_ms": 1.0,
+   "startup_s": 2.2045176869996794,
+   "odom_connect_s": 0.2001112269999794,
+   "odom_subscriptions_renewed": 0,
+   "odom_msgs": 9450,
+   "odom_models_received": 50,
+   "odom_min_per_model": 189,
+   "odom_max_per_model": 189,
+   "odom_rate_hz_per_model": 6.299518396149071
+  },
+  "gz_sim_version": "8.15.0",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "mission_dt",
+  "n_agents": 100,
+  "window_s": 30.000443339999947,
+  "processes": {
+   "core": {
+    "cpu_s": 3.21,
+    "cpu_pct": 10.69984187773675,
+    "peak_rss_mib": 27.53125,
+    "rss_end_mib": 27.53125,
+    "threads": 3,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 5.66,
+    "cpu_pct": 18.86638785918692,
+    "peak_rss_mib": 75.36328125,
+    "rss_end_mib": 75.36328125,
+    "threads": 202,
+    "n_processes": 1
+   },
+   "broker": {
+    "cpu_s": 0.64,
+    "cpu_pct": 2.1333018073992274,
+    "peak_rss_mib": 7.58984375,
+    "rss_end_mib": 7.58984375,
+    "threads": 1,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 31.699531544322895,
+   "peak_rss_mib": 110.484375,
+   "rss_end_mib": 110.484375
+  },
+  "harness_cpu_pct": 0.0,
+  "mission": {
+   "frames": 240,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 8.401205562480149,
+    "p50": 6.076070000744949,
+    "p99": 32.430200999442604,
+    "max": 39.14327599977696,
+    "n": 240
+   },
+   "release_jitter_ms": {
+    "mean": 0.511147545720784,
+    "p50": 0.10557299992797198,
+    "p99": 7.8815259994371445,
+    "max": 41.153211999699124,
+    "n": 240
+   },
+   "telemetry_msgs": 25000,
+   "telemetry_agents_received": 100,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.333175655483538,
+   "telemetry_lat_ms": {
+    "mean": 3.918598690032959,
+    "p50": 2.585887908935547,
+    "p99": 21.810054779052734,
+    "max": 35.95304489135742,
+    "n": 25000
+   },
+   "transport": "paho-mqtt 2.1.0"
+  },
+  "agents": {
+   "actuation_msgs": 24000,
+   "actuation_agents_received": 100,
+   "actuation_min_per_agent": 240,
+   "actuation_max_per_agent": 240,
+   "telemetry_sent": 25000,
+   "telemetry_rate_hz_per_agent": 8.33251898236567,
+   "telemetry_bytes_mean": 567.6115375389782,
+   "actuation_lat_ms": {
+    "mean": 5.474211543798447,
+    "p50": 5.08880615234375,
+    "p99": 15.205144882202148,
+    "max": 32.509803771972656,
+    "n": 24000
+   }
+  },
+  "transport": "paho-mqtt 2.1.0",
+  "broker": "mosquitto (mosquitto.conf)",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "ros2",
+  "n_agents": 100,
+  "window_s": 30.000261051999587,
+  "processes": {
+   "core": {
+    "cpu_s": 7.990000000000001,
+    "cpu_pct": 26.633101579185922,
+    "peak_rss_mib": 82.2421875,
+    "rss_end_mib": 82.2421875,
+    "threads": 15,
+    "n_processes": 1
+   },
+   "agents": {
+    "cpu_s": 6.830000000000001,
+    "cpu_pct": 22.766468558928644,
+    "peak_rss_mib": 125.31640625,
+    "rss_end_mib": 125.31640625,
+    "threads": 116,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 49.39957013811457,
+   "peak_rss_mib": 207.55859375,
+   "rss_end_mib": 207.55859375
+  },
+  "harness_cpu_pct": 0.03333304327807998,
+  "mission": {
+   "frames": 241,
+   "overruns": 0,
+   "frames_run": 304,
+   "overruns_run": 0,
+   "frame_ms": {
+    "mean": 8.201417099598041,
+    "p50": 7.981746000041312,
+    "p99": 15.754108000692213,
+    "max": 18.80500000061147,
+    "n": 241
+   },
+   "release_jitter_ms": {
+    "mean": 2.8693421879286993,
+    "p50": 1.9492000001264387,
+    "p99": 12.373499000204902,
+    "max": 15.90443600071012,
+    "n": 240
+   },
+   "telemetry_msgs": 25000,
+   "telemetry_agents_received": 100,
+   "telemetry_min_per_agent": 250,
+   "telemetry_max_per_agent": 250,
+   "telemetry_rate_hz_per_agent": 8.333218989624513,
+   "telemetry_lat_ms": {
+    "mean": 10.310183305740356,
+    "p50": 8.717775344848633,
+    "p99": 26.585102081298828,
+    "max": 52.37388610839844,
+    "n": 25000
+   },
+   "transport": "rmw_fastrtps_cpp"
+  },
+  "agents": {
+   "actuation_msgs": 24001,
+   "actuation_agents_received": 100,
+   "actuation_min_per_agent": 240,
+   "actuation_max_per_agent": 241,
+   "telemetry_sent": 25000,
+   "telemetry_rate_hz_per_agent": 8.331780888152963,
+   "telemetry_bytes_mean": 567.5222155688623,
+   "actuation_lat_ms": {
+    "mean": 10.747866344265152,
+    "p50": 10.555505752563477,
+    "p99": 21.858692169189453,
+    "max": 30.073165893554688,
+    "n": 24001
+   },
+   "discovery_s": 0.40150681599970994,
+   "matched_agents": 100
+  },
+  "transport": "rmw_fastrtps_cpp",
+  "ros_distro": "jazzy",
+  "qos": "best_effort, keep_last 1, volatile",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ },
+ {
+  "stack": "gazebo",
+  "n_agents": 100,
+  "window_s": 30.002479118999872,
+  "processes": {
+   "gz_sim": {
+    "cpu_s": 29.169999999999998,
+    "cpu_pct": 97.2252988971412,
+    "peak_rss_mib": 409.68359375,
+    "rss_end_mib": 409.68359375,
+    "threads": 208,
+    "n_processes": 1
+   }
+  },
+  "total": {
+   "cpu_pct": 97.2252988971412,
+   "peak_rss_mib": 409.68359375,
+   "rss_end_mib": 409.68359375
+  },
+  "harness_cpu_pct": 0.0,
+  "monitor": {
+   "cpu_s": 0.8200000000000001,
+   "cpu_pct": 2.7331074767108596,
+   "peak_rss_mib": 29.62890625,
+   "rss_end_mib": 29.62890625,
+   "threads": 8,
+   "n_processes": 1
+  },
+  "gazebo": {
+   "rtf": 0.33002482868274247,
+   "rtf_stats_mean": 0.33567485692441384,
+   "rtf_stats_min": 0.09808530616396509,
+   "sim_s": 9.884,
+   "real_s": 29.949261816,
+   "steps_per_s": 330.02482868274245,
+   "step_ms": 1.0,
+   "startup_s": 2.204691222999827,
+   "odom_connect_s": 0.20010189000004175,
+   "odom_subscriptions_renewed": 0,
+   "odom_msgs": 8200,
+   "odom_models_received": 100,
+   "odom_min_per_model": 82,
+   "odom_max_per_model": 82,
+   "odom_rate_hz_per_model": 2.7329800242433895
+  },
+  "gz_sim_version": "8.15.0",
+  "python": "3.12.3",
+  "mosquitto": "mosquitto version 2.0.18",
+  "cpu_affinity": [
+   0
+  ]
+ }
+]

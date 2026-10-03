@@ -1,6 +1,9 @@
 #!/bin/bash
-# Mission-DT -- run the full experiment battery (E1..E4 + figures).
-# Usage, from anywhere:   bash run_all.sh
+# Mission-DT -- run the experiment battery (E1 to E4 of the paper, the
+# publication-rate measurement, and the diagnostic figures). E5 (run_e6.py)
+# and E6 (run_e7.py) run outside this script.
+# Usage, from anywhere:   bash run_all.sh            (one run, into results/)
+#                         REPS=5 bash run_all.sh     (five runs, into results/rep1..rep5/)
 # Cross-platform: finds the venv's python executable directly by path
 # (Unix .venv/bin/python or Windows .venv/Scripts/python.exe), avoiding
 # PATH/activation quirks seen with Git Bash on Windows.
@@ -24,6 +27,11 @@ fi
 echo "Using python: $PYTHON"
 "$PYTHON" --version
 
+# 1b) pin the broker and the experiments to one core when taskset exists
+#     (Linux); the paper runs use core 0.
+PIN=""
+if command -v taskset >/dev/null 2>&1; then PIN="taskset -c 0"; fi
+
 # 2) macOS default file-descriptor limit (256) is too low for 100 agents;
 #    harmless no-op on Windows/Linux.
 ulimit -n 4096 2>/dev/null || true
@@ -36,7 +44,7 @@ broker_up() {
 if ! broker_up; then
     echo "Broker not running -- attempting to start Mosquitto..."
     if command -v mosquitto >/dev/null 2>&1; then
-        nohup mosquitto >/tmp/mosquitto_run_all.log 2>&1 &
+        nohup $PIN mosquitto -c mosquitto.conf >/tmp/mosquitto_run_all.log 2>&1 &
         sleep 2
     elif command -v brew >/dev/null 2>&1; then
         brew services start mosquitto >/dev/null 2>&1 || true
@@ -55,20 +63,44 @@ if ! broker_up; then
     fi
 fi
 echo "Broker OK."
+echo "NOTE: a broker that was already running keeps its own configuration;"
+echo "      the paper results use mosquitto.conf (set_tcp_nodelay true)."
 
 echo "== Clearing retained ghosts from the broker =="
 "$PYTHON" experiments/clear_retained.py
 
-echo "== E1 + E2 (scalability + regulators, ~6 min) =="
-"$PYTHON" experiments/run_experiments.py
+# REPS=5 bash run_all.sh repeats the battery; repetition r writes to
+# results/rep<r>/ and experiments/aggregate.py reports mean and standard
+# deviation over the repetitions. REPS=1 (default) writes to results/.
+REPS="${REPS:-1}"
+for r in $(seq 1 "$REPS"); do
+    if [ "$REPS" -gt 1 ]; then export MDT_RESULTS="results/rep$r"; echo "== Repetition $r/$REPS =="; fi
 
-echo "== E3 (swarm propagation, ~2.5 min) =="
-"$PYTHON" experiments/run_e3.py
+    echo "== E1 + publication rate (frame compute time; 8.33 Hz vs. 50 Hz, ~6 min) =="
+    $PIN "$PYTHON" experiments/run_experiments.py
 
-echo "== E4 (twin fidelity vs. packet loss, ~2 min) =="
-"$PYTHON" experiments/run_e4.py
+    echo "== E2 (swarm-reaction latency, ~2.5 min) =="
+    $PIN "$PYTHON" experiments/run_e3.py
 
-echo "== Figures =="
-"$PYTHON" experiments/make_figures.py
+    echo "== E3 (twin fidelity vs. packet loss, 8.33 Hz and 50 Hz publication, ~4 min) =="
+    $PIN "$PYTHON" experiments/run_e4.py
+    $PIN "$PYTHON" experiments/run_e4.py --publish-all
 
-echo "All experiments done. Raw data and figures are in results/."
+    echo "== E4 (CPU and memory of the Mission-DT process, ~2.5 min) =="
+    $PIN "$PYTHON" experiments/run_e5.py
+
+    echo "== Figures =="
+    "$PYTHON" experiments/make_figures.py
+done
+unset MDT_RESULTS
+
+if [ "$REPS" -gt 1 ]; then
+    echo "== Aggregation over $REPS repetitions =="
+    REP_DIRS=""
+    for r in $(seq 1 "$REPS"); do REP_DIRS="$REP_DIRS results/rep$r"; done
+    "$PYTHON" experiments/aggregate.py $REP_DIRS
+    echo "All experiments done. Raw data and figures are in results/rep1..rep$REPS/;"
+    echo "results/summary.json and results/summary.md hold the aggregate."
+else
+    echo "All experiments done. Raw data and figures are in results/."
+fi

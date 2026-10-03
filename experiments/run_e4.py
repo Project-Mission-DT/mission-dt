@@ -1,23 +1,27 @@
 """
-E4 -- Twin fidelity under packet loss.
+E3 of the paper -- Twin fidelity under packet loss.
 
 Question: how faithful is the twin's state estimate, and how does it
 degrade when the network drops telemetry?
 
 Method: virtual agents log their ground-truth pose at 50 Hz; a logging
 subclass of the mission core records the twin's estimate (and the
-stale flag) at every frame. Loss is injected at the regulator output
-with i.i.d. probability p in {0, 5%, 10%} -- representative of harsh
-maritime Wi-Fi. For every core sample we interpolate the ground truth
+stale flag) at every frame. Each agent drops each telemetry message it
+would publish with i.i.d. probability p in {0, 5%, 10%}, before the MQTT
+publication. For every core sample we interpolate the ground truth
 at the same instant and compute position error (metres) and heading
 error (degrees, wrapped). Reported: RMSE, p99, worst error observed
 during stale (dead-reckoned) frames.
 
-    python experiments/run_e4.py [loss ...]      # default: 0 0.05 0.10
+    python experiments/run_e4.py [--publish-all] [loss ...]   # default: 0 0.05 0.10
+Agents publish at 8.33 Hz (one of every six 50 Hz samples) and the script
+writes e4_fidelity.json; with --publish-all they publish every 50 Hz sample
+and the script writes e4_fidelity_50hz.json.
 """
 import bisect
 import json
 import math
+import os
 import statistics as st
 import sys
 import time
@@ -26,21 +30,34 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from mission_dt.core import MissionDT
-from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
+from mission_dt.agents import (VirtualAgent, BASE_LAT, BASE_LON, RESULT_RATE_FIELD,
+                               PUBLISH_ALL_FLAGS, publish_all_requested)
 
-RES = str(ROOT / "results")
+RES = os.environ.get("MDT_RESULTS") or str(ROOT / "results")
+os.makedirs(RES, exist_ok=True)
 
 
 class LoggingDT(MissionDT):
+    """Logs the state estimate of the mission twin once per frame (formal core hook).
+    Also logs the stale streak m and the last received state (hold estimate)."""
     def __init__(self, *a, **k):
-        super().__init__(*a, **k)
-        self.state_log = []   # (t, aid, lat, lon, yaw, stale)
+        super().__init__(*a, on_frame=self._log, **k)
+        self.state_log = []   # (t, aid, lat, lon, yaw, stale, m, hold_lat, hold_lon)
+        self._streak, self._hold = {}, {}
 
-    def _delta(self, rec, telems):
-        super()._delta(rec, telems)
-        if rec.last_seq >= 0:      # only after first real telemetry
-            self.state_log.append((time.time(), rec.agent_id, rec.state.lat,
-                                   rec.state.lon, rec.state.yaw, rec.stale))
+    def _log(self, M):
+        now = time.time()
+        for aid, B in M.B.items():
+            if not B.seeded:
+                continue
+            if B.stale:
+                self._streak[aid] = self._streak.get(aid, 0) + 1
+            else:
+                self._streak[aid] = 0
+                self._hold[aid] = (B.p[0], B.p[1])
+            h = self._hold.get(aid, (B.p[0], B.p[1]))
+            self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale,
+                                   self._streak[aid], h[0], h[1]))
 
 
 def wrap_deg(a):
@@ -52,13 +69,14 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e4(loss, n_agents=10, duration=30.0):
+def run_e4(loss, n_agents=10, duration=30.0, decimate=True):
     dt = LoggingDT()
     agents, goals = [], {}
     for i in range(n_agents):
         dom = "aerial" if i % 2 else "surface"
         a = VirtualAgent(f"fd{i:02d}", domain=dom,
-                         duration_s=duration + 2, loss=loss)
+                         duration_s=duration + 2, loss=loss,
+                         decimate=decimate)
         agents.append(a)
         goals[a.aid] = (BASE_LAT + 0.002 * (i % 7 - 3),
                         BASE_LON + 0.002 * (i // 7 - 3),
@@ -72,8 +90,9 @@ def run_e4(loss, n_agents=10, duration=30.0):
 
     truth = {a.aid: a.truth_log for a in agents}
     times = {aid: [r[0] for r in log] for aid, log in truth.items()}
-    pos_err, hdg_err, stale_err = [], [], []
-    for (t, aid, lat, lon, yaw, stale) in dt.state_log:
+    pos_err, hdg_err, stale_err, rows = [], [], [], []
+    dom = {a.aid: a.domain for a in agents}
+    for (t, aid, lat, lon, yaw, stale, m, hlat, hlon) in dt.state_log:
         log, ts = truth[aid], times[aid]
         i = bisect.bisect_left(ts, t)
         if i == 0 or i >= len(ts):
@@ -90,11 +109,15 @@ def run_e4(loss, n_agents=10, duration=30.0):
         hdg_err.append(he)
         if stale:
             stale_err.append(pe)
+        hy = (hlat - tlat) * 111_320.0
+        hx = (hlon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
+        rows.append((dom[aid], m, pe, math.hypot(hx, hy)))
     frames_agents = len(dt.state_log)
     lost = sum(a.lost_msgs for a in agents)
     sent = sum(a.msgs_out for a in agents)
     return {
-        "loss": loss, "n_agents": n_agents, "duration_s": duration,
+        "loss": loss, RESULT_RATE_FIELD: decimate,
+        "n_agents": n_agents, "duration_s": duration,
         "samples": len(pos_err),
         "lost_msgs": lost, "sent_msgs": sent,
         "stale_pct": 100.0 * dt.stale_updates / max(1, frames_agents),
@@ -103,18 +126,21 @@ def run_e4(loss, n_agents=10, duration=30.0):
         "pos_max_stale_m": max(stale_err) if stale_err else 0.0,
         "hdg_rmse_deg": math.sqrt(st.mean(e * e for e in hdg_err)),
         "hdg_p99_deg": pctl(hdg_err, 99),
+        "rows_dom_m_err_hold": rows,
     }
 
 
 if __name__ == "__main__":
-    import os
-    losses = [float(x) for x in sys.argv[1:]] or [0.0, 0.05, 0.10]
-    fn = f"{RES}/e4_fidelity.json"
+    # python experiments/run_e4.py [--publish-all] [loss ...]
+    args = sys.argv[1:]
+    decimate = not publish_all_requested(args)
+    losses = [float(x) for x in args if x not in PUBLISH_ALL_FLAGS] or [0.0, 0.05, 0.10]
+    fn = f"{RES}/e4_fidelity.json" if decimate else f"{RES}/e4_fidelity_50hz.json"
     out = json.load(open(fn)) if os.path.exists(fn) else []
     out = [r for r in out if r["loss"] not in losses]
     for L in losses:
-        print(f"[E4] loss={L:.0%} ...", flush=True)
-        r = run_e4(L)
+        print(f"[E3] loss={L:.0%} publication {'8.33' if decimate else '50'} Hz ...", flush=True)
+        r = run_e4(L, decimate=decimate)
         out.append(r)
         json.dump(sorted(out, key=lambda x: x["loss"]), open(fn, "w"))
         print(f"     pos RMSE={r['pos_rmse_m']:.2f} m  p99={r['pos_p99_m']:.2f} m"

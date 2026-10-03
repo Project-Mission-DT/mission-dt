@@ -1,0 +1,9 @@
+# ArduRover SITL defaults for E7 (motorboat model, FRAME_CLASS 2 = boat).
+# WP_SPEED and CRUISE_SPEED of 2 m/s match the virtual surface agents, so that
+# SET_ATTITUDE_TARGET thrust tau gives a target speed of tau * 2 m/s.
+# SCHED_LOOP_RATE 100 allows the 50 Hz GLOBAL_POSITION_INT and ATTITUDE streams.
+FRAME_CLASS 2
+ARMING_SKIPCHK -1
+CRUISE_SPEED 2
+WP_SPEED 2
+SCHED_LOOP_RATE 100

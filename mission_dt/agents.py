@@ -1,15 +1,15 @@
 """
-Virtual agents: the "second digital twin" that emulates a physical
-drone (aerial) or vessel (surface). From the Mission-DT viewpoint a
-virtual agent is indistinguishable from a physical one: both publish
-I_k^t on missiondt/agents/<id>/telemetry and consume A_k^t from
-missiondt/agents/<id>/actuation.
+Virtual agents: vehicle-level emulators of a drone (aerial) or a vessel
+(surface). From the Mission-DT viewpoint a virtual agent behaves as a
+physical one: both publish z_k^t on missiondt/agents/<id>/telemetry and
+consume u_k^t from missiondt/agents/<id>/actuation.
 
-Sensors are sampled at their native rate (SENSOR_HZ); the bandwidth
-regulator forwards only every k-th sample so that the network sees
-PUBLISH_HZ, matching the DT frame rate (Fleet-DT regulator scheme).
+Each agent steps its kinematic model at SENSOR_HZ (50 Hz) and publishes
+one of every PUBLISH_EVERY samples (8.33 Hz), or every sample (50 Hz) with
+publish_every=1 (decimate=False).
 """
 import json
+import socket
 import math
 import random
 import time
@@ -18,16 +18,54 @@ import threading
 import paho.mqtt.client as mqtt
 
 SENSOR_HZ = 50.0    # native IMU/estimator sampling rate
-PUBLISH_HZ = 8.0    # regulated network rate (= 1/125 ms)
+PUBLISH_EVERY = 6   # publish one of every six samples: 50 Hz / 6 = 8.33 Hz
+# Boolean field of the result files that records the publication rate
+# (true: 8.33 Hz, false: 50 Hz).
+RESULT_RATE_FIELD = "decimate"
+# Option of the experiment scripts that publishes every 50 Hz sample.
+PUBLISH_ALL_FLAGS = ("--publish-all",)
+
+
+def publish_all_requested(argv):
+    """True when argv holds the option that publishes every 50 Hz sample."""
+    return any(a in PUBLISH_ALL_FLAGS for a in argv)
+
+
 BASE_LAT, BASE_LON = -30.0577, -51.1729  # Porto Alegre test area
 
 
 class VirtualAgent(threading.Thread):
+    """decimate=True publishes one of every PUBLISH_EVERY samples (8.33 Hz) and
+    decimate=False every 50 Hz sample; publish_every (6 or 1) overrides decimate."""
+
     def __init__(self, agent_id, domain="surface", host="127.0.0.1",
-                 regulator=True, duration_s=30.0, jitter=True, loss=0.0):
+                 decimate=True, duration_s=30.0, jitter=True, loss=0.0,
+                 publish_every=None):
         super().__init__(daemon=True)
+        if publish_every is None:
+            publish_every = PUBLISH_EVERY if decimate else 1
+        self._init_state(agent_id, domain, publish_every, duration_s, jitter, loss)
+
+        self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
+                               client_id=agent_id, protocol=mqtt.MQTTv5)
+        self.cli.on_message = self._on_act
+        self.cli.connect(host, 1883)
+        # disable Nagle on the client socket: paho does not set TCP_NODELAY
+        self.cli.socket().setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.cli.subscribe(f"missiondt/agents/{agent_id}/actuation", qos=0)
+        self.cli.publish(f"missiondt/agents/{agent_id}/register",
+                         json.dumps({"domain": domain, "kind": "virtual"}),
+                         qos=1, retain=True)
+        self.cli.loop_start()
+
+    # state of the emulated vehicle and metrics, independent of the transport
+    # (E5 reuses it with a ROS 2 transport, experiments/run_e6.py).
+    # publish_every: 6 (8.33 Hz) or 1 (50 Hz); True and False stand for 6 and 1.
+    def _init_state(self, agent_id, domain, publish_every, duration_s, jitter, loss):
         self.aid, self.domain = agent_id, domain
-        self.regulator = regulator
+        if isinstance(publish_every, bool):
+            publish_every = PUBLISH_EVERY if publish_every else 1
+        self.publish_every = int(publish_every)
         self.loss = loss              # simulated network loss probability
         self.lost_msgs = 0
         self.truth_log = []           # (t, lat, lon, yaw) ground truth
@@ -44,20 +82,12 @@ class VirtualAgent(threading.Thread):
         self.seq = 0
         self.bytes_out = 0
         self.msgs_out = 0
+        self.t_first_pub = None   # publication window (rates use it)
+        self.t_last_pub = None
         self.act_latencies = []   # DT actuation publish -> agent apply (s)
         self.swarm_latencies = []  # neighbor telemetry pub -> corrective actuation here (s)
 
-        self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,
-                               client_id=agent_id, protocol=mqtt.MQTTv5)
-        self.cli.on_message = self._on_act
-        self.cli.connect(host, 1883)
-        self.cli.subscribe(f"missiondt/agents/{agent_id}/actuation", qos=0)
-        self.cli.publish(f"missiondt/agents/{agent_id}/register",
-                         json.dumps({"domain": domain, "kind": "virtual"}),
-                         qos=1, retain=True)
-        self.cli.loop_start()
-
-    # actuation A_k^t from the Mission-DT (two-way channel: DT -> twin)
+    # actuation u_k^t from the Mission-DT (two-way channel: DT -> twin)
     def _on_act(self, cli, ud, msg):
         a = json.loads(msg.payload)
         now = time.time()
@@ -94,13 +124,13 @@ class VirtualAgent(threading.Thread):
 
     def run(self):
         period = 1.0 / SENSOR_HZ
-        decim = int(SENSOR_HZ / PUBLISH_HZ)
+        decim = self.publish_every
         tick, t_next = 0, time.monotonic()
         t_end = t_next + self.duration
         while time.monotonic() < t_end:
             self._step(period)
             self.truth_log.append((time.time(), self.lat, self.lon, self.yaw))
-            if not self.regulator or tick % decim == 0:
+            if tick % decim == 0:
                 self.seq += 1
                 if self.loss > 0.0 and random.random() < self.loss:
                     self.lost_msgs += 1          # dropped by the "network"
@@ -110,6 +140,10 @@ class VirtualAgent(threading.Thread):
                                      p, qos=0)
                     self.bytes_out += len(p)
                     self.msgs_out += 1
+                    now_pub = time.time()
+                    if self.t_first_pub is None:
+                        self.t_first_pub = now_pub
+                    self.t_last_pub = now_pub
             tick += 1
             t_next += period
             s = t_next - time.monotonic()
