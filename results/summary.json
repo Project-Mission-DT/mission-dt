@@ -68,7 +68,7 @@
     "e7_hybrid"
    ]
   },
-  "generated": "2026-10-03T11:29:49-0300",
+  "generated": "2026-10-03T11:34:50-0300",
   "percentile_rule": "rank floor(pn/100)+1: sorted[min(n-1, int(p/100*n))]",
   "rep_std": "sample standard deviation over repetitions (None with 1 rep)",
   "pooled_std": "population standard deviation over pooled samples"
@@ -2151,10 +2151,10 @@
   ]
  },
  "e2_publication_rate": {
-  "config_key": "regulator",
+  "config_key": "decimate",
   "configs": [
    {
-    "regulator": true,
+    "decimate": true,
     "reps": [
      "rep1",
      "rep2",
@@ -2413,7 +2413,7 @@
     }
    },
    {
-    "regulator": false,
+    "decimate": false,
     "reps": [
      "rep1",
      "rep2",

@@ -27,7 +27,7 @@ import time
 # Boolean field of the result files that records the publication rate
 # (true: one of every six 50 Hz samples, 8.33 Hz; false: every sample, 50 Hz);
 # same name as RESULT_RATE_FIELD of mission_dt/agents.py.
-RATE_FIELD = "regulator"
+RATE_FIELD = "decimate"
 FILES = [
     # (file stem, configuration key); paper experiment in the comment
     ("e1_scalability", "n_agents"),              # E1

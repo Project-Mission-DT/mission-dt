@@ -224,9 +224,6 @@ def main():
     ap.add_argument("--domain", default="surface", choices=("surface", "aerial"))
     ap.add_argument("--publish-all", action="store_true",
                     help="publish every 50 Hz position sample (default: one of every six, 8.33 Hz)")
-    # former spelling of --publish-all, accepted and not listed in the help
-    ap.add_argument("--no-regulator", dest="publish_all", action="store_true",
-                    help=argparse.SUPPRESS)
     ap.add_argument("--metrics")
     args = ap.parse_args()
     ad = MavlinkAdapter(args.id, args.mavlink, args.mqtt_host, args.mqtt_port,

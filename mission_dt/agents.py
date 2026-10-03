@@ -20,11 +20,10 @@ import paho.mqtt.client as mqtt
 SENSOR_HZ = 50.0    # native IMU/estimator sampling rate
 PUBLISH_EVERY = 6   # publish one of every six samples: 50 Hz / 6 = 8.33 Hz
 # Boolean field of the result files that records the publication rate
-# (true: 8.33 Hz, false: 50 Hz); the name stays for data compatibility.
-RESULT_RATE_FIELD = "regulator"
-# Option of the experiment scripts that publishes every 50 Hz sample, and the
-# former spelling of the option, still accepted.
-PUBLISH_ALL_FLAGS = ("--publish-all", "--no-regulator")
+# (true: 8.33 Hz, false: 50 Hz).
+RESULT_RATE_FIELD = "decimate"
+# Option of the experiment scripts that publishes every 50 Hz sample.
+PUBLISH_ALL_FLAGS = ("--publish-all",)
 
 
 def publish_all_requested(argv):
@@ -37,15 +36,12 @@ BASE_LAT, BASE_LON = -30.0577, -51.1729  # Porto Alegre test area
 
 class VirtualAgent(threading.Thread):
     """decimate=True publishes one of every PUBLISH_EVERY samples (8.33 Hz) and
-    decimate=False every 50 Hz sample; publish_every (6 or 1) overrides decimate.
-    The keyword after publish_every is the former name of decimate."""
+    decimate=False every 50 Hz sample; publish_every (6 or 1) overrides decimate."""
 
     def __init__(self, agent_id, domain="surface", host="127.0.0.1",
                  decimate=True, duration_s=30.0, jitter=True, loss=0.0,
-                 publish_every=None, regulator=None):
+                 publish_every=None):
         super().__init__(daemon=True)
-        if regulator is not None:
-            decimate = regulator
         if publish_every is None:
             publish_every = PUBLISH_EVERY if decimate else 1
         self._init_state(agent_id, domain, publish_every, duration_s, jitter, loss)
