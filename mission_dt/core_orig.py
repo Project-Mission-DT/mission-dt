@@ -67,7 +67,7 @@ class MissionDT:
     def __init__(self, host="127.0.0.1", frame_ms=FRAME_MS, viz_hook=None,
                  swarm=False, sep_m=12.0):
         self.frame_s = frame_ms / 1000.0
-        self.swarm = swarm          # enable inter-agent separation (phi context)
+        self.swarm = swarm          # enable inter-agent separation (phi, collective features)
         self.sep_m = sep_m          # separation threshold (meters)
         self.avoid_events = 0       # frames in which avoidance overrode lambda
         self.agents: dict[str, AgentRecord] = {}
@@ -77,7 +77,7 @@ class MissionDT:
 
         # metrics
         self.msg_latencies = []          # publish -> DT ingestion (s)
-        self.frame_compute = []          # delta+lambda compute time per frame (s)
+        self.frame_compute = []          # f_d+lambda compute time per frame (s)
         self.frame_overruns = 0          # frames whose work exceeded T_f
         self.frames = 0
         self.stale_updates = 0           # frames where an agent had no fresh telemetry
@@ -146,7 +146,7 @@ class MissionDT:
             rec.history.append(AgentState(**vars(rec.state)))
 
     # ------------------------------------------------------------------
-    # lambda : goal-seeking decision function -> u_k^t
+    # lambda : goal-seeking command function -> u_k^t
     # ------------------------------------------------------------------
     def _lambda(self, rec: AgentRecord) -> dict:
         s, g = rec.state, rec.goal
@@ -164,7 +164,7 @@ class MissionDT:
 
 
     # ------------------------------------------------------------------
-    # phi + swarm rule : mission context (inter-agent distances) feeding
+    # phi + swarm rule : collective features (inter-agent distances) feeding
     # a separation behavior. Returns (neighbor, dist, away_bearing) when
     # the nearest same-domain neighbor is within sep_m, else None.
     # ------------------------------------------------------------------

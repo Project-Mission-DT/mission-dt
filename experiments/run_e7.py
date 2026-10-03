@@ -1,18 +1,18 @@
 """
-E7 -- Hybrid fleet: ArduRover SITL boats and virtual agents under one mission.
+E6 of the paper -- Hybrid fleet: ArduRover SITL boats and virtual agents under
+one mission.
 
-Scenario (the E3 scenario with surface agents only): N agents start on a
+Scenario (the E2 scenario with surface agents only): N agents start on a
 circle of radius 40 m and receive antipodal goals, so every agent crosses
 the center and the separation rule (d_sep = 12 m) fires between agents of
 both kinds. N_SITL agents are physical agents: an ArduRover SITL instance
 (motorboat model, configs/sitl_boat.parm) with the MAVLink-to-MQTT adapter
-(mission_dt/mavlink_adapter.py) and a local Mosquitto broker bridged to the
-ground-station broker, as on ArduPilot USVs. The other agents are virtual
-agents connected to the ground-station broker.
+(mission_dt/mavlink_adapter.py). The adapters and the virtual agents connect
+to the single ground-station broker.
 
 CPU placement (2 vCPU): core 0 = ground station (broker, mission core and the
-virtual agents, as in E1 to E5); core 1 = vehicle side (SITL instances,
-adapters and local brokers).
+virtual agents, as in E1 to E5); core 1 = vehicle side (SITL instances and
+adapters).
 
 Measured per run:
   telemetry latency (t_pub at the agent or adapter -> core receive), by kind
@@ -106,16 +106,9 @@ class AgentE7(VirtualAgent):
         super()._on_act(cli, ud, msg)
 
 
-def broker_conf(path, port, bridge_id=None):
-    lines = [f"listener {port} 127.0.0.1", "allow_anonymous true", "set_tcp_nodelay true"]
-    if bridge_id:
-        lines += [f"connection bridge-{bridge_id}", "address 127.0.0.1:1883",
-                  f"topic missiondt/agents/{bridge_id}/telemetry out 0",
-                  f"topic missiondt/agents/{bridge_id}/register out 1",
-                  f"topic missiondt/agents/{bridge_id}/actuation in 0",
-                  "cleansession true", "try_private true", "notifications false"]
-    Path(path).write_text("\n".join(lines) + "\n")
-
+def broker_conf(path, port):
+    Path(path).write_text("\n".join([f"listener {port} 127.0.0.1", "allow_anonymous true",
+                                      "set_tcp_nodelay true"]) + "\n")
 
 def wait_port(port, timeout=10.0):
     import socket
@@ -158,10 +151,6 @@ def run_e7(n_sitl=2, n_virtual=8):
             lat, lon, yaw = pos[aid]
             d = tmp / aid
             d.mkdir()
-            broker_conf(d / "local.conf", 1884 + i, aid)
-            procs.append(subprocess.Popen(pinned(["mosquitto", "-c", str(d / "local.conf")], c_veh),
-                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
-            wait_port(1884 + i)
             procs.append(subprocess.Popen(
                 pinned([SITL, "-w", "-M", "motorboat", "-I", str(i),
                         "--home", f"{lat},{lon},0,{math.degrees(yaw) % 360:.1f}",
@@ -171,7 +160,7 @@ def run_e7(n_sitl=2, n_virtual=8):
             adapters.append(subprocess.Popen(
                 pinned([sys.executable, "-m", "mission_dt.mavlink_adapter", "--id", aid,
                         "--mavlink", f"tcp:127.0.0.1:{5760 + 10 * i}",
-                        "--mqtt-port", str(1884 + i), "--metrics", str(d / "adapter.json")], c_veh),
+                        "--mqtt-port", "1883", "--metrics", str(d / "adapter.json")], c_veh),
                 cwd=ROOT, stdout=open(d / "adapter.log", "w"), stderr=subprocess.STDOUT))
         # wait for the retained registrations of the physical agents at the ground broker
         seen = set()
@@ -269,7 +258,7 @@ if __name__ == "__main__":
     n_virtual = args[1] if len(args) > 1 else 8
     os.makedirs(RES, exist_ok=True)
     fn = f"{RES}/e7_hybrid.json"
-    print(f"[E7] {n_sitl} ArduRover SITL + {n_virtual} virtual agents ...", flush=True)
+    print(f"[E6] {n_sitl} ArduRover SITL + {n_virtual} virtual agents ...", flush=True)
     r = run_e7(n_sitl, n_virtual)
     json.dump([r], open(fn, "w"))
     t, s = r["telemetry_lat_ms"], r["swarm_lat_ms"]

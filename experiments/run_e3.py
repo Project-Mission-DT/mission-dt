@@ -1,20 +1,25 @@
 """
-E3 -- Swarm-reaction propagation latency.
+E2 of the paper -- Swarm-reaction latency.
 
 Scenario: N agents start on a circle (radius R_M) and receive antipodal
 goals, forcing everyone through the center and creating repeated
-separation conflicts. The mission core runs with swarm=True: the phi
-context (inter-agent distances) triggers a separation rule that
-overrides lambda for conflicting neighbors.
+separation conflicts. The mission core runs with swarm=True: the
+collective features phi (inter-agent distances) trigger a separation rule
+that replaces lambda for conflicting neighbors.
 
 Measured, per corrective actuation delivered to a neighbor:
     propagation latency = t_apply(neighbor) - t_pub(triggering telemetry)
 i.e., the full path: maneuvering agent publishes telemetry -> mission
-core frame (delta + phi + separation) -> corrective actuation received
+core frame (f_d + Phi + separation) -> corrective actuation received
 by the neighbor. Upper bound by design: ~2 frames (250 ms) + delivery.
 
 Also reports Gamma frame cost with the O(N^2) phi computation on, to
-show the twin still meets the 125 ms deadline with coordination active.
+show the twin still meets the 125 ms deadline with the separation rule active.
+
+    python experiments/run_e3.py [--publish-all] [N ...]   # default N: 10 25 50
+Agents publish at 8.33 Hz (one of every six 50 Hz samples) and the script
+writes e3_swarm.json; with --publish-all they publish every 50 Hz sample and
+the script writes e3_swarm_50hz.json.
 """
 import json
 import math
@@ -26,7 +31,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from mission_dt.core import MissionDT
-from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
+from mission_dt.agents import (VirtualAgent, BASE_LAT, BASE_LON, RESULT_RATE_FIELD,
+                               publish_all_requested)
 
 RES = os.environ.get("MDT_RESULTS") or str(Path(__file__).resolve().parent.parent / "results")
 os.makedirs(RES, exist_ok=True)
@@ -37,7 +43,7 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, regulator=True):
+def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, decimate=True):
     dt = MissionDT(swarm=True, sep_m=sep_m)
     agents, goals = [], {}
     for i in range(n_agents):
@@ -46,7 +52,7 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, regulator=True):
         dlon = radius_m * math.sin(th) / (111_320.0 * math.cos(math.radians(BASE_LAT)))
         dom = "aerial" if i % 2 else "surface"
         a = VirtualAgent(f"sw{i:03d}", domain=dom, duration_s=duration + 2,
-                         regulator=regulator)
+                         decimate=decimate)
         a.lat, a.lon = BASE_LAT + dlat, BASE_LON + dlon
         a.yaw = th + math.pi          # facing the center
         agents.append(a)
@@ -61,7 +67,7 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, regulator=True):
     lat_sw = [x for a in agents for x in a.swarm_latencies]
     return {
         "n_agents": n_agents, "duration_s": duration, "sep_m": sep_m,
-        "regulator": regulator,
+        RESULT_RATE_FIELD: decimate,
         "frames": dt.frames, "overruns": dt.frame_overruns,
         "avoid_events": dt.avoid_events,
         "frame_ms": {"mean": st.mean(dt.frame_compute) * 1e3,
@@ -86,17 +92,17 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, regulator=True):
 
 
 if __name__ == "__main__":
-    # --no-regulator: agents publish every 50 Hz sample (E3 at 50 Hz),
-    # results in e3_swarm_noreg.json
-    reg = "--no-regulator" not in sys.argv
+    # --publish-all: agents publish every 50 Hz sample (E2 at 50 Hz),
+    # results in e3_swarm_50hz.json
+    dec = not publish_all_requested(sys.argv[1:])
     sizes = [int(x) for x in sys.argv[1:] if not x.startswith("--")] or [10, 25, 50]
-    name = "e3_swarm.json" if reg else "e3_swarm_noreg.json"
+    name = "e3_swarm.json" if dec else "e3_swarm_50hz.json"
     fn = f"{RES}/{name}"
     out = json.load(open(fn)) if os.path.exists(fn) else []
     out = [r for r in out if r["n_agents"] not in sizes]
     for n in sizes:
-        print(f"[E3] N={n} regulator={'ON' if reg else 'OFF'} ...", flush=True)
-        r = run_e3(n, regulator=reg)
+        print(f"[E2] N={n} publication {'8.33' if dec else '50'} Hz ...", flush=True)
+        r = run_e3(n, decimate=dec)
         out.append(r)
         json.dump(out, open(fn, "w"))
         s = r["swarm_lat_ms"]

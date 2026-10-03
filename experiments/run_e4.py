@@ -1,19 +1,22 @@
 """
-E4 -- Twin fidelity under packet loss.
+E3 of the paper -- Twin fidelity under packet loss.
 
 Question: how faithful is the twin's state estimate, and how does it
 degrade when the network drops telemetry?
 
 Method: virtual agents log their ground-truth pose at 50 Hz; a logging
 subclass of the mission core records the twin's estimate (and the
-stale flag) at every frame. Loss is injected at the regulator output
-with i.i.d. probability p in {0, 5%, 10%} -- representative of harsh
-maritime Wi-Fi. For every core sample we interpolate the ground truth
+stale flag) at every frame. Each agent drops each telemetry message it
+would publish with i.i.d. probability p in {0, 5%, 10%}, before the MQTT
+publication. For every core sample we interpolate the ground truth
 at the same instant and compute position error (metres) and heading
 error (degrees, wrapped). Reported: RMSE, p99, worst error observed
 during stale (dead-reckoned) frames.
 
-    python experiments/run_e4.py [loss ...]      # default: 0 0.05 0.10
+    python experiments/run_e4.py [--publish-all] [loss ...]   # default: 0 0.05 0.10
+Agents publish at 8.33 Hz (one of every six 50 Hz samples) and the script
+writes e4_fidelity.json; with --publish-all they publish every 50 Hz sample
+and the script writes e4_fidelity_50hz.json.
 """
 import bisect
 import json
@@ -27,7 +30,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from mission_dt.core import MissionDT
-from mission_dt.agents import VirtualAgent, BASE_LAT, BASE_LON
+from mission_dt.agents import (VirtualAgent, BASE_LAT, BASE_LON, RESULT_RATE_FIELD,
+                               PUBLISH_ALL_FLAGS, publish_all_requested)
 
 RES = os.environ.get("MDT_RESULTS") or str(ROOT / "results")
 os.makedirs(RES, exist_ok=True)
@@ -65,14 +69,14 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e4(loss, n_agents=10, duration=30.0, regulator=True):
+def run_e4(loss, n_agents=10, duration=30.0, decimate=True):
     dt = LoggingDT()
     agents, goals = [], {}
     for i in range(n_agents):
         dom = "aerial" if i % 2 else "surface"
         a = VirtualAgent(f"fd{i:02d}", domain=dom,
                          duration_s=duration + 2, loss=loss,
-                         regulator=regulator)
+                         decimate=decimate)
         agents.append(a)
         goals[a.aid] = (BASE_LAT + 0.002 * (i % 7 - 3),
                         BASE_LON + 0.002 * (i // 7 - 3),
@@ -112,7 +116,7 @@ def run_e4(loss, n_agents=10, duration=30.0, regulator=True):
     lost = sum(a.lost_msgs for a in agents)
     sent = sum(a.msgs_out for a in agents)
     return {
-        "loss": loss, "regulator": regulator,
+        "loss": loss, RESULT_RATE_FIELD: decimate,
         "n_agents": n_agents, "duration_s": duration,
         "samples": len(pos_err),
         "lost_msgs": lost, "sent_msgs": sent,
@@ -127,16 +131,16 @@ def run_e4(loss, n_agents=10, duration=30.0, regulator=True):
 
 
 if __name__ == "__main__":
-    # python experiments/run_e4.py [--no-regulator] [loss ...]
+    # python experiments/run_e4.py [--publish-all] [loss ...]
     args = sys.argv[1:]
-    regulator = "--no-regulator" not in args
-    losses = [float(x) for x in args if x != "--no-regulator"] or [0.0, 0.05, 0.10]
-    fn = f"{RES}/e4_fidelity.json" if regulator else f"{RES}/e4_fidelity_noreg.json"
+    decimate = not publish_all_requested(args)
+    losses = [float(x) for x in args if x not in PUBLISH_ALL_FLAGS] or [0.0, 0.05, 0.10]
+    fn = f"{RES}/e4_fidelity.json" if decimate else f"{RES}/e4_fidelity_50hz.json"
     out = json.load(open(fn)) if os.path.exists(fn) else []
     out = [r for r in out if r["loss"] not in losses]
     for L in losses:
-        print(f"[E4] loss={L:.0%} regulator={'ON' if regulator else 'OFF'} ...", flush=True)
-        r = run_e4(L, regulator=regulator)
+        print(f"[E3] loss={L:.0%} publication {'8.33' if decimate else '50'} Hz ...", flush=True)
+        r = run_e4(L, decimate=decimate)
         out.append(r)
         json.dump(sorted(out, key=lambda x: x["loss"]), open(fn, "w"))
         print(f"     pos RMSE={r['pos_rmse_m']:.2f} m  p99={r['pos_p99_m']:.2f} m"

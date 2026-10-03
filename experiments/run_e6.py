@@ -1,10 +1,11 @@
 """
-E6 -- Resource comparison: Mission-DT (MQTT) vs. ROS 2 vs. Gazebo.
+E5 of the paper -- Resource comparison: Mission-DT (MQTT) vs. ROS 2 vs. Gazebo.
 
-Three implementations of the same fleet, N agents on the goal grid of E5:
+Three implementations of the same fleet, N agents on the goal grid of E4
+(experiments/run_e5.py):
 
-  mission_dt  the mission core process of E5 (mission_dt/core.py), the agents
-              process of E5 (VirtualAgent threads) and a Mosquitto broker
+  mission_dt  the mission core process of E4 (mission_dt/core.py), the agents
+              process of E4 (VirtualAgent threads) and a Mosquitto broker
               started for the trial with mosquitto.conf.
   ros2        a mission node process (rclpy) that subscribes /mdt/<id>/telemetry,
               calls the mission transition mission_transition of mission_dt/model.py as
@@ -67,13 +68,13 @@ STACKS = ("mission_dt", "ros2", "gazebo")
 ROS_SETUP = os.environ.get("MDT_ROS_SETUP", "/opt/ros/jazzy/setup.bash")
 ROS_DOMAIN_ID = "42"
 GZ_WORLD = "e6"
-GZ_ODOM_HZ = 50.0 / 6.0                      # 8.33 Hz, the regulated rate
+GZ_ODOM_HZ = 50.0 / 6.0                      # 8.33 Hz, the telemetry rate of the agents
 TCK = os.sysconf("SC_CLK_TCK")
 # the script subscribes to every odometry topic to verify the 8.33 Hz output;
 # MDT_E6_GZ_ODOM_SUB=0 leaves the odometry without a subscriber
 ODOM_SUB = os.environ.get("MDT_E6_GZ_ODOM_SUB", "1") != "0"
 
-from run_e5 import goal                      # noqa: E402  same goals as E5
+from run_e5 import goal                      # noqa: E402  same goals as E4
 
 
 def aid(i):
@@ -207,7 +208,7 @@ def agents_snap(agents):
 
 
 def child_mqtt_core(n):
-    """Mission-DT core of E5 (mission_dt/core.py) with a per-agent receive counter."""
+    """Mission-DT core of E4 (mission_dt/core.py) with a per-agent receive counter."""
     from mission_dt.core import MissionDT
 
     class CountingMissionDT(MissionDT):
@@ -235,7 +236,7 @@ def child_mqtt_core(n):
 
 
 def child_mqtt_agents(n):
-    """Agents process of E5: N VirtualAgent threads."""
+    """Agents process of E4: N VirtualAgent threads."""
     from mission_dt.agents import VirtualAgent
     agents = [VirtualAgent(aid(i), domain=dom_of(i), duration_s=RUN_S + 2)
               for i in range(n)]
@@ -534,7 +535,7 @@ def finish(p, timeout=RUN_S + 30):
 def trial_mission_dt(n):
     if port_open(1883):
         raise RuntimeError("a broker already listens on 127.0.0.1:1883; stop it, "
-                           "E6 starts its own broker for each trial")
+                           "E5 starts its own broker for each trial")
     broker = subprocess.Popen(["mosquitto", "-c", str(ROOT / "mosquitto.conf")],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0 = time.monotonic()
@@ -546,7 +547,7 @@ def trial_mission_dt(n):
     try:
         core = spawn("mqtt-core", n)
         ag = spawn("mqtt-agents", n)
-        time.sleep(1.0)                      # registration settle (as E5)
+        time.sleep(1.0)                      # registration settle (as E4)
         send([ag, core], "go")
         time.sleep(WARMUP)
         procs, wall, hcpu = measure(
@@ -582,7 +583,7 @@ def trial_ros2(n):
 
 # ---- Gazebo stack -------------------------------------------------------
 def gz_world(n):
-    """SDF world: N box vehicles on the E5 goal grid, constant twist,
+    """SDF world: N box vehicles on the E4 goal grid, constant twist,
     odometry at 8.33 Hz; systems: Physics only at world level."""
     from mission_dt.agents import BASE_LAT, BASE_LON
     m = 111_320.0
@@ -759,14 +760,14 @@ if __name__ == "__main__":
         args = args[2:]
     sizes = [int(x) for x in args] or [10, 50, 100]
     if not affinity_ok():
-        print("warning: run E6 under `taskset -c 0` (current affinity "
+        print("warning: run E5 under `taskset -c 0` (current affinity "
               f"{sorted(os.sched_getaffinity(0))})", flush=True)
     os.makedirs(RES, exist_ok=True)
     info = env_info()
     out = []
     for n in sizes:
         for s in stacks:
-            print(f"[E6] {s} N={n} ...", flush=True)
+            print(f"[E5] {s} N={n} ...", flush=True)
             r = TRIALS[s](n)
             r.update(info, cpu_affinity=sorted(os.sched_getaffinity(0)))
             out.append(r)

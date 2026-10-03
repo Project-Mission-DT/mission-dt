@@ -1,17 +1,19 @@
 """
-Aggregate the repetitions of the experiment battery (E1..E6).
+Aggregate the repetitions of the experiment battery (E1 to E6 of the paper).
 
     python experiments/aggregate.py results/rep*
 
 Each argument is a repetition directory holding the JSON files written by
-run_experiments.py (E1, E2), run_e3.py, run_e4.py (with and without
---no-regulator), run_e5.py and run_e6.py. Missing files are skipped. The script writes
-summary.json and summary.md into the parent directory of the first argument.
+run_experiments.py (E1 and the publication-rate measurement), run_e3.py (E2),
+run_e4.py (E3, with and without --publish-all), run_e5.py (E4), run_e6.py (E5)
+and run_e7.py (E6). Missing files are skipped. The script writes summary.json
+and summary.md into the parent directory of the first argument; the keys of
+summary.json are the stems of the result files.
 
 Per configuration and per scalar metric: mean, sample standard deviation
 (statistics.stdev, None with one repetition), min, max and the number of
 repetitions over the per-repetition values.
-Pooled statistics: computed over the raw_* sample arrays (and E4
+Pooled statistics: computed over the raw_* sample arrays (and E3
 rows_dom_m_err_hold) concatenated over all repetitions. Percentiles use the
 rank floor(pn/100)+1 rule of the producing scripts: sorted[min(n-1, int(p/100*n))].
 """
@@ -22,25 +24,29 @@ import statistics as st
 import sys
 import time
 
+# Boolean field of the result files that records the publication rate
+# (true: one of every six 50 Hz samples, 8.33 Hz; false: every sample, 50 Hz);
+# same name as RESULT_RATE_FIELD of mission_dt/agents.py.
+RATE_FIELD = "regulator"
 FILES = [
-    # (file stem, configuration key)
-    ("e1_scalability", "n_agents"),
-    ("e2_regulator", "regulator"),
-    ("e3_swarm", "n_agents"),
-    ("e4_fidelity", "loss"),
-    ("e4_fidelity_noreg", "loss"),
-    ("e5_resources", "n_agents"),
-    ("e6_comparison", ("stack", "n_agents")),
-    ("e7_hybrid", "n_sitl"),
+    # (file stem, configuration key); paper experiment in the comment
+    ("e1_scalability", "n_agents"),              # E1
+    ("e2_publication_rate", RATE_FIELD),         # not in the paper
+    ("e3_swarm", "n_agents"),                    # E2
+    ("e4_fidelity", "loss"),                     # E3, 8.33 Hz
+    ("e4_fidelity_50hz", "loss"),                # E3, 50 Hz
+    ("e5_resources", "n_agents"),                # E4
+    ("e6_comparison", ("stack", "n_agents")),    # E5
+    ("e7_hybrid", "n_sitl"),                     # E6
 ]
 # Fields that identify or parametrise a run; they are not metrics.
-CONFIG_FIELDS = {"n_agents", "regulator", "loss", "duration_s", "sep_m", "n_sitl", "n_virtual"}
+CONFIG_FIELDS = {"n_agents", RATE_FIELD, "loss", "duration_s", "sep_m", "n_sitl", "n_virtual"}
 FRAME_MS = 125.0
 HIST_BIN_MS, HIST_MAX_MS = 10.0, 300.0
 STREAK_BINS = ["0", "1", "2", ">=3"]
 DOMAINS = ["aerial", "surface"]
-E6_STACKS = ["mission_dt", "ros2", "gazebo"]      # order of the E6 tables
-E6_PROCS = {"mission_dt": ["core", "agents", "broker"], "ros2": ["core", "agents"],
+COMPARISON_STACKS = ["mission_dt", "ros2", "gazebo"]      # order of the E5 tables (e6_comparison.json)
+COMPARISON_PROCS = {"mission_dt": ["core", "agents", "broker"], "ros2": ["core", "agents"],
             "gazebo": ["gz_sim"]}
 
 
@@ -104,8 +110,8 @@ def streak_bin(m):
 
 
 def config_label(key, val):
-    if key == "regulator":
-        return "ON" if val else "OFF"
+    if key == RATE_FIELD:
+        return "8.33 Hz" if val else "50 Hz"
     return val
 
 
@@ -140,15 +146,15 @@ def group_by_config(per_rep, key):
         for r in recs:
             v = tuple(r.get(k) for k in key) if isinstance(key, tuple) else r.get(key)
             groups.setdefault(v, {})[rep] = r
-    if isinstance(key, tuple):       # E6: (stack, N), stacks in E6_STACKS order
+    if isinstance(key, tuple):       # E5: (stack, N), stacks in COMPARISON_STACKS order
         order = sorted(groups, key=lambda v: (
-            E6_STACKS.index(v[0]) if v[0] in E6_STACKS else len(E6_STACKS), str(v[0]), v[1:]))
+            COMPARISON_STACKS.index(v[0]) if v[0] in COMPARISON_STACKS else len(COMPARISON_STACKS), str(v[0]), v[1:]))
         return [(v, groups[v]) for v in order]
     try:
         order = sorted(groups, key=lambda v: (v is None, v))
     except TypeError:
         order = list(groups)
-    if key == "regulator":           # ON first, as in the runner
+    if key == RATE_FIELD:            # 8.33 Hz first, as in the runner
         order = sorted(groups, key=lambda v: not v)
     return [(v, groups[v]) for v in order]
 
@@ -179,7 +185,7 @@ def pool(recs_by_rep, key):
 
 # ---------------------------------------------------------------- per experiment
 def summarise_timing(recs_by_rep):
-    """Pooled statistics for E1/E2 records."""
+    """Pooled statistics for E1 and publication-rate records."""
     p = {}
     for name, key, pcts in [
             ("frame_ms", "raw_frame_compute_ms", (50, 99)),
@@ -197,7 +203,7 @@ def summarise_timing(recs_by_rep):
 
 
 def summarise_e7(recs_by_rep):
-    """Pooled E7 statistics: latencies by agent kind and swarm-reaction latency
+    """Pooled E6 statistics: latencies by agent kind and swarm-reaction latency
     by the kinds of the receiver and of the triggering agent."""
     recs = list(recs_by_rep.values())
     p = {"frames_total": sum(r["frames"] for r in recs),
@@ -288,7 +294,7 @@ def summarise_e4(recs_by_rep):
 
 
 def ratio_off_on(configs_raw):
-    """E2: per-repetition ratio OFF/ON of uplink_Bps and dup_updates."""
+    """Publication rate: per-repetition ratio 50 Hz / 8.33 Hz of uplink_Bps and dup_updates."""
     on = dict(configs_raw).get(True, {})
     off = dict(configs_raw).get(False, {})
     out = {}
@@ -317,7 +323,7 @@ def summarise(data):
             c = dict(zip(key, val)) if isinstance(key, tuple) else {key: val}
             c.update({"reps": sorted(recs), "n_reps": len(recs),
                       "metrics": per_rep_metrics(recs)})
-            if stem in ("e1_scalability", "e2_regulator"):
+            if stem in ("e1_scalability", "e2_publication_rate"):
                 c["pooled"] = summarise_timing(recs)
             elif stem == "e3_swarm":
                 c["pooled"] = summarise_e3(recs)
@@ -328,7 +334,7 @@ def summarise(data):
             configs.append(c)
         entry = {"config_key": ",".join(key) if isinstance(key, tuple) else key,
                  "configs": configs}
-        if stem == "e2_regulator":
+        if stem == "e2_publication_rate":
             entry["ratio_off_on"] = ratio_off_on(grouped)
         summary[stem] = entry
     return summary
@@ -377,7 +383,7 @@ def render_md(summary, meta):
 
     e = summary.get("e1_scalability")
     if e:
-        L += ["## E1 Scalability", ""]
+        L += ["## E1 Frame compute time (e1_scalability)", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
@@ -396,28 +402,28 @@ def render_md(summary, meta):
                     "stale %", "dup", "uplink KiB/s", "core CPU %"], rows)
         L.append("")
 
-    e = summary.get("e2_regulator")
+    e = summary.get("e2_publication_rate")
     if e:
-        L += ["## E2 Bandwidth regulator (N = 10)", ""]
+        L += ["## Publication rate, N = 10 (e2_publication_rate, not reported in the paper)", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
-            rows.append([config_label("regulator", c["regulator"]), c["n_reps"],
+            rows.append([config_label(RATE_FIELD, c[RATE_FIELD]), c["n_reps"],
                          ms(m, "uplink_Bps", 1, 1 / 1024), ms(m, "uplink_msgs_s", 1),
                          ms(m, "dup_updates", 0), ms(m, "stale_pct"),
                          ms(m, "telemetry_lat_ms.p99"), f(g(p, "telemetry_lat_ms", "p99")),
                          ms(m, "frame_ms.p99"), f(g(p, "frame_ms", "p99"))])
-        L += table(["regulator", "reps", "uplink KiB/s", "msgs/s", "dup", "stale %",
+        L += table(["publication", "reps", "uplink KiB/s", "msgs/s", "dup", "stale %",
                     "tele p99", "tele p99 pooled", "frame p99", "frame p99 pooled"], rows)
         r = e["ratio_off_on"]
-        L += ["", "| ratio OFF/ON | mean | std | reps |", "|---|---|---|---|"]
+        L += ["", "| ratio 50 Hz / 8.33 Hz | mean | std | reps |", "|---|---|---|---|"]
         for k in ("uplink_Bps", "dup_updates"):
             L.append(f"| {k} | {f(r[k]['mean'])} | {f(r[k]['std'])} | {r[k]['n']} |")
         L.append("")
 
     e = summary.get("e3_swarm")
     if e:
-        L += ["## E3 Swarm-reaction latency", ""]
+        L += ["## E2 Swarm-reaction latency at 8.33 Hz (e3_swarm)", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
@@ -435,12 +441,12 @@ def render_md(summary, meta):
                     "% ≤125 ms", "% ≤250 ms", "frame p99 pooled", "overruns/frames"], rows)
         L.append("")
 
-    for stem, title in (("e4_fidelity", "regulator ON"),
-                        ("e4_fidelity_noreg", "regulator OFF")):
+    for stem, title in (("e4_fidelity", "publication at 8.33 Hz"),
+                        ("e4_fidelity_50hz", "publication at 50 Hz")):
         e = summary.get(stem)
         if not e:
             continue
-        L += [f"## E4 Twin fidelity under packet loss ({title})", ""]
+        L += [f"## E3 Twin fidelity under packet loss, {title} ({stem})", ""]
         rows, srows = [], []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
@@ -467,7 +473,7 @@ def render_md(summary, meta):
 
     e = summary.get("e5_resources")
     if e:
-        L += ["## E5 Resource footprint of the Mission-DT process", ""]
+        L += ["## E4 Resource footprint of the Mission-DT process (e5_resources)", ""]
         rows = [[c["n_agents"], c["n_reps"], ms(c["metrics"], "cpu_pct", 1),
                  ms(c["metrics"], "peak_rss_mib", 1), ms(c["metrics"], "frames", 0),
                  ms(c["metrics"], "overruns", 0)] for c in e["configs"]]
@@ -477,14 +483,14 @@ def render_md(summary, meta):
 
     e = summary.get("e6_comparison")
     if e:
-        L += ["## E6 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo", "",
+        L += ["## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e6_comparison)", "",
               "Per process, over the measured window: CPU = (utime + stime) / wall "
               "in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the "
               "window. All processes on core 0. *total* sums the processes of the stack.", ""]
         rows = []
         for c in e["configs"]:
             m = c["metrics"]
-            for proc in E6_PROCS.get(c["stack"], []) + ["total"]:
+            for proc in COMPARISON_PROCS.get(c["stack"], []) + ["total"]:
                 pre = "total." if proc == "total" else f"processes.{proc}."
                 rows.append([c["stack"], c["n_agents"], c["n_reps"], proc,
                              ms(m, pre + "cpu_pct", 1), ms(m, pre + "peak_rss_mib", 1),
@@ -527,13 +533,32 @@ def render_md(summary, meta):
                   "1 ms physics step, target 1.0) and odometry received by the monitor:", ""]
             L += table(["N", "reps", "RTF", "min RTF (stats msg)", "steps/s",
                         "models received", "odom Hz per model (wall)", "monitor CPU %"], rows)
+        # last row of Table IV: ROS 2 mission node + Gazebo server of separate runs
+        by = {(c["stack"], c["n_agents"]): c["metrics"] for c in e["configs"]}
+        rows = []
+        for (stack, n), m in by.items():
+            gz = by.get(("gazebo", n))
+            if stack != "ros2" or gz is None:
+                continue
+            a, b = g(m, "processes.core.cpu_pct"), g(gz, "processes.gz_sim.cpu_pct")
+            ra, rb = g(m, "processes.core.peak_rss_mib"), g(gz, "processes.gz_sim.peak_rss_mib")
+            if not (a and b and ra and rb):
+                continue
+            sd = (math.sqrt(a["std"] ** 2 + b["std"] ** 2)
+                  if a["std"] is not None and b["std"] is not None else None)
+            rows.append([n, f(a["mean"] + b["mean"], 1) + ("" if sd is None else " ± " + f(sd, 1)),
+                         f(ra["mean"] + rb["mean"], 1)])
+        if rows:
+            L += ["", "ROS 2 mission node + Gazebo server (sum of the means of separate runs; "
+                  "std = square root of the sum of the variances):", ""]
+            L += table(["N", "CPU % of one core", "peak RSS MiB"], rows)
         L.append("")
 
     e = summary.get("e7_hybrid")
     if e:
-        L += ["## E7 Hybrid fleet: ArduRover SITL boats and virtual agents", "",
-              "Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter + local "
-              "broker bridged to the ground-station broker (core 1); ground station and "
+        L += ["## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e7_hybrid)", "",
+              "Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter connected "
+              "to the ground-station broker (core 1); ground station (broker, mission core) and "
               "virtual agents on core 0. Latencies pooled over all runs (ms).", ""]
         for c in e["configs"]:
             q = c["pooled"]

@@ -36,23 +36,23 @@ h1,l1=ax.get_legend_handles_labels();h2,l2=ax2.get_legend_handles_labels()
 ax.legend(h1+h2,l1+l2,frameon=False,fontsize=7,loc="upper left")
 fig.tight_layout();fig.savefig(f"{R}/fig_latency.pdf");fig.savefig(f"{R}/fig_latency.png")
 
-# Fig C: regulator effect
-e2=json.load(open(f"{R}/e2_regulator.json"))
+# Fig C: publication rate (8.33 Hz vs. 50 Hz; not reported in the paper)
+e2=json.load(open(f"{R}/e2_publication_rate.json"))
 on,off=e2[0],e2[1]
 fig,axs=plt.subplots(1,2,figsize=(3.45,1.9))
-axs[0].bar(["ON\n(8 Hz)","OFF\n(50 Hz)"],[on["uplink_Bps"]/1024,off["uplink_Bps"]/1024],
+axs[0].bar(["8.33 Hz","50 Hz"],[on["uplink_Bps"]/1024,off["uplink_Bps"]/1024],
            color=["#16243F","#C9A24A"],width=0.55)
 axs[0].set_ylabel("Uplink usage (KiB/s)");axs[0].set_title("Bandwidth",fontsize=8)
-axs[1].bar(["ON\n(8 Hz)","OFF\n(50 Hz)"],[on["dup_updates"],off["dup_updates"]],
+axs[1].bar(["8.33 Hz","50 Hz"],[on["dup_updates"],off["dup_updates"]],
            color=["#16243F","#C9A24A"],width=0.55)
 axs[1].set_ylabel("Redundant updates");axs[1].set_title("Wasted samples",fontsize=8)
 for a in axs:
     for c in a.containers: a.bar_label(c,fontsize=7,fmt="%.0f")
     a.margins(y=0.18)
-fig.tight_layout();fig.savefig(f"{R}/fig_regulator.pdf");fig.savefig(f"{R}/fig_regulator.png")
+fig.tight_layout();fig.savefig(f"{R}/fig_publication_rate.pdf");fig.savefig(f"{R}/fig_publication_rate.png")
 print("figures ok")
 
-# Fig D: E3 swarm propagation latency CDF
+# Fig D: E2 swarm-reaction latency CDF (e3_swarm.json)
 _R = R
 if os.path.exists(f"{_R}/e3_swarm.json"):
     e3=json.load(open(f"{_R}/e3_swarm.json"))

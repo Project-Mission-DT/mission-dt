@@ -2,8 +2,8 @@
 MAVLink-to-MQTT adapter of a physical agent (Section III-B of the paper).
 
 The adapter runs on the companion computer of an ArduPilot vehicle (or next
-to an ArduPilot SITL instance, as in E7) and connects the autopilot to the
-local MQTT broker of the vehicle, which bridges to the ground-station broker.
+to an ArduPilot SITL instance, as in E6) and connects the autopilot to the
+ground-station MQTT broker over the wireless link of the vehicle.
 Towards Mission-DT it implements the same contract as a virtual agent:
 
   register   missiondt/agents/<id>/register   QoS 1, retained,
@@ -12,8 +12,8 @@ Towards Mission-DT it implements the same contract as a virtual agent:
   actuation  missiondt/agents/<id>/actuation  QoS 0, u_k^t = {"tau", "alpha"}
 
 Telemetry: the adapter requests GLOBAL_POSITION_INT and ATTITUDE at 50 Hz and
-publishes one of every six position samples (8.33 Hz), the regulator of the
-virtual agents.
+publishes one of every six position samples (8.33 Hz), the publication rate of
+the virtual agents (--publish-all: every 50 Hz sample).
 
 Actuation: the adapter discards a command older than T_f (t_pub of the core)
 and passes the others to the autopilot in GUIDED mode as SET_ATTITUDE_TARGET
@@ -25,7 +25,8 @@ autopilot stay active and override the mission twin.
 
 Usage (one process per vehicle):
     python -m mission_dt.mavlink_adapter --id boat1 --mavlink tcp:127.0.0.1:5760 \
-        --mqtt-port 1884 [--domain surface] [--metrics out.json]
+        --mqtt-host <ground-station broker> [--mqtt-port 1883] [--domain surface] \
+        [--publish-all] [--metrics out.json]
 SIGTERM or SIGINT stops the vehicle (tau = 0), disarms it, removes the
 retained registration, and writes the metrics file.
 """
@@ -51,8 +52,9 @@ ATT_MASK |= 0b00000011     # ignore body roll and pitch rates
 
 class MavlinkAdapter:
     def __init__(self, agent_id, mav_url, mqtt_host="127.0.0.1", mqtt_port=1883,
-                 domain="surface", regulator=True):
-        self.aid, self.domain, self.regulator = agent_id, domain, regulator
+                 domain="surface", decimate=True):
+        self.aid, self.domain = agent_id, domain
+        self.publish_every = DECIM if decimate else 1
         for attempt in range(60):          # the autopilot may still be starting
             try:
                 self.mav = mavutil.mavlink_connection(mav_url, source_system=255,
@@ -183,7 +185,7 @@ class MavlinkAdapter:
             elif t == "GLOBAL_POSITION_INT":
                 t_rx = time.time()
                 self.n_pos += 1
-                if not self.regulator or self.n_pos % DECIM == 0:
+                if self.n_pos % self.publish_every == 0:
                     self._publish(m, t_rx)
 
     def stop(self):
@@ -220,11 +222,15 @@ def main():
     ap.add_argument("--mqtt-host", default="127.0.0.1")
     ap.add_argument("--mqtt-port", type=int, default=1883)
     ap.add_argument("--domain", default="surface", choices=("surface", "aerial"))
-    ap.add_argument("--no-regulator", action="store_true")
+    ap.add_argument("--publish-all", action="store_true",
+                    help="publish every 50 Hz position sample (default: one of every six, 8.33 Hz)")
+    # former spelling of --publish-all, accepted and not listed in the help
+    ap.add_argument("--no-regulator", dest="publish_all", action="store_true",
+                    help=argparse.SUPPRESS)
     ap.add_argument("--metrics")
     args = ap.parse_args()
     ad = MavlinkAdapter(args.id, args.mavlink, args.mqtt_host, args.mqtt_port,
-                        args.domain, not args.no_regulator)
+                        args.domain, not args.publish_all)
     signal.signal(signal.SIGTERM, lambda *_: ad.stop())
     signal.signal(signal.SIGINT, lambda *_: ad.stop())
     ad.prepare()

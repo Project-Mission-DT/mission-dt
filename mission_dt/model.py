@@ -12,14 +12,14 @@ Notation (paper -> code)
   z_k^t                           tuple[Msg, ...]  telemetry of k received in (vartheta_{t-1}, vartheta_t]
   x_k^t                           State
   H_k^t = (x_k^{t-L}..x_k^{t-1})  tuple[State, ...] with length <= L
-  f_d                       agent_update(d, H, I, prev, P)
-  Phi, phi_k^t, j_k^t             phi_of(B, dom)
+  f_d                             agent_update(d, H, I, prev, P)  (agent transition)
+  Phi, phi_k^t, j_k^t             phi_of(B, dom)  (feature function, collective features)
   sigma                           P.sigma(g, B, phi)
-  lambda_d, lambda^s_d            lam(d, B_k, g_k, P), lam_s(d, B_k, B_j, g_k, P)
+  lambda_d, lambda^s_d            lam(d, B_k, g_k, P), lam_s(d, B_k, B_j, g_k, P)  (command function, separation function)
   u_k^t                           Act (dict with "tau", "alpha"[, "climb"])
   omega^t, omega_k^t              goals: mission goal and agent goals (argument g)
   M^t = <x^t, phi^t, omega^t>     Mission
-  (M^t, u^t) = Gamma(H_M, z^t, omega^t)   mission_transition(HM, I, g, dom, P)
+  (M^t, u^t) = Gamma(H_M, z^t, omega^t)   mission_transition(HM, I, g, dom, P)  (mission transition)
 The code names the families x, z, u and omega B, I, A and g.
 """
 from __future__ import annotations
@@ -97,7 +97,7 @@ Sigma = Callable[[object, Mapping[str, State], Phi], Mapping[str, Goal]]
 
 
 def fixed_waypoints(g_mission: Mapping[str, Goal], B, phi) -> Mapping[str, Goal]:
-    """sigma used in E1-E4: the mission goal is one waypoint per agent,
+    """sigma used in all experiments: the mission goal is one waypoint per agent,
     for the agents that have a state x_k^t."""
     return {k: g_mission[k] for k in B if k in g_mission}
 
@@ -106,7 +106,7 @@ def fixed_waypoints(g_mission: Mapping[str, Goal], B, phi) -> Mapping[str, Goal]
 class Params:
     """P = <(f_d, lambda_d, lambda^s_d)_d, Phi, sigma, d_sep (field d_s), T_f, L>.
 
-    separation=False equals d_sep = 0 (E1, E2, E4).
+    separation=False equals d_sep = 0 (every experiment except E2 and E6).
     """
     T_f: float = 0.125
     L: int = 8
@@ -170,7 +170,7 @@ def agent_update(d: str, H: tuple[State, ...], I: tuple[Msg, ...],
 
 
 # ----------------------------------------------------------------------
-# Phi : mission context
+# Phi : feature function (collective features phi)
 # ----------------------------------------------------------------------
 def phi_of(B: Mapping[str, State], dom: Mapping[str, str]) -> Phi:
     """phi_k^t = min_{j != k, d_j = d_k} ||pi_h(p_k) - pi_h(p_j)||, over the agents in x^t.
@@ -195,7 +195,7 @@ def phi_of(B: Mapping[str, State], dom: Mapping[str, str]) -> Phi:
 
 
 # ----------------------------------------------------------------------
-# lambda_d and lambda^s_d : decision functions
+# lambda_d and lambda^s_d : command function and separation function
 # ----------------------------------------------------------------------
 def lam(d: str, Bk: State, gk: Goal, P: Params) -> Act:
     dist, dx, dy = horiz_dist(Bk, State(p=gk))
@@ -230,7 +230,7 @@ class MissionHistory:
 def mission_transition(HM: MissionHistory, I: Mapping[str, tuple[Msg, ...]],
             g_mission, dom: Mapping[str, str], P: Params
             ) -> tuple[Mission, dict[str, Act], dict[str, Optional[str]]]:
-    """(M^t, u^t) = Gamma(H_M^t, z^t, omega^t). Order: delta -> Phi -> sigma -> lambda.
+    """(M^t, u^t) = Gamma(H_M^t, z^t, omega^t). Order: f_d -> Phi -> sigma -> lambda.
 
     An agent of dom with no state and no applicable message has no x_k^t:
     it is absent from M^t.B, phi^t, omega^t and u^t until its first applied message.

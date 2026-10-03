@@ -1,7 +1,7 @@
 """Values and PNG versions of Figs. 3, 5 and 6 of the paper.
 
-Reads the five runs in results/rep1..rep5 (and results/e3_noreg_n50_extra/run1..run5
-for E3 at 50 Hz and N = 50), writes doc/figures/paper_figures.json with the plotted
+Reads the five runs in results/rep1..rep5 (and results/e3_50hz_n50_extra/run1..run5
+for E2 at 50 Hz and N = 50), writes doc/figures/paper_figures.json with the plotted
 values and doc/figures/fig3_frame_time.png, fig5_swarm_latency.png and
 fig6_dead_reckoning.png. The paper draws the same values with pgfplots.
 
@@ -55,11 +55,11 @@ for i, n in enumerate(NS1):
     fig3[n] = {"frames": len(pooled), "mean": st.mean(pooled), "p99": pct(pooled, 99),
                "max": max(pooled), "overruns": sum(rep[i]["overruns"] for rep in e1)}
 
-# ---------------------------------------------------------------- Fig. 5 (E3)
+# ---------------------------------------------------------------- Fig. 5 (E2)
 e3 = load("e3_swarm.json")
-e3n = load("e3_swarm_noreg.json")
-extra_dir = os.path.join(R, "e3_noreg_n50_extra")
-extra = [json.load(open(os.path.join(extra_dir, f"run{k}", "e3_swarm_noreg.json")))[0]
+e3n = load("e3_swarm_50hz.json")
+extra_dir = os.path.join(R, "e3_50hz_n50_extra")
+extra = [json.load(open(os.path.join(extra_dir, f"run{k}", "e3_swarm_50hz.json")))[0]
          for k in range(1, 6)] if os.path.isdir(extra_dir) else []
 fig5 = {}
 for rate, src in (("8.33 Hz", e3), ("50 Hz", e3n)):
@@ -77,7 +77,7 @@ for rate, src in (("8.33 Hz", e3), ("50 Hz", e3n)):
             "diverged_runs": sum(max(r) > 1000 for r in per_run),
             "max_per_run": [round(max(r), 1) for r in per_run]}
 
-# ---------------------------------------------------------------- Fig. 6 (E4)
+# ---------------------------------------------------------------- Fig. 6 (E3)
 cells = defaultdict(list)
 for rep in load("e4_fidelity.json"):
     for row in rep:
@@ -145,7 +145,7 @@ plt.close(fig)
 
 fig, axes = plt.subplots(1, 2, figsize=(6.0, 2.6))
 for ax, dom, ymax in ((axes[0], "aerial", 4.0), (axes[1], "surface", 0.7)):
-    for key, col, mk, ls, dx, lab in (("dead_reckoning", BLUE, "o", "-", -0.05, "dead reckoning, Eq. (6)"),
+    for key, col, mk, ls, dx, lab in (("dead_reckoning", BLUE, "o", "-", -0.05, "dead reckoning, Eq. (2)"),
                                       ("last_state", ORANGE, "s", "--", 0.05, "last received state")):
         pts = [fig6[f"{dom}, m={m}"][key] for m in (0, 1, 2)]
         ax.errorbar([m + dx for m in (0, 1, 2)], [p[0] for p in pts], yerr=[p[1] for p in pts],

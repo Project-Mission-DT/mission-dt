@@ -1,5 +1,5 @@
 """
-E5 -- Resource footprint of the Mission-DT process.
+E4 of the paper -- Resource footprint of the Mission-DT process.
 
 The mission core runs in its own process and the N virtual agents run in a
 second process, so the CPU time and memory measured belong to the Mission-DT
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     os.makedirs(RES, exist_ok=True)
     out = []
     for n in sizes:
-        print(f"[E5] N={n} ...", flush=True)
+        print(f"[E4] N={n} ...", flush=True)
         r = trial(n)
         out.append(r)
         json.dump(out, open(f"{RES}/e5_resources.json", "w"))

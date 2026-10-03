@@ -2,7 +2,7 @@
 
 Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard deviation over repetitions; columns marked *pooled* use all samples of all repetitions (percentile = sample of rank floor(pn/100)+1). Times in ms.
 
-## E1 Scalability
+## E1 Frame compute time (e1_scalability)
 
 | N | reps | overruns/frames | frame mean | frame p99 | frame p99 pooled | frame max pooled | jitter p99 pooled | tele p99 | tele p99 pooled | act p99 | act p99 pooled | stale % | dup | uplink KiB/s | core CPU % |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -15,19 +15,19 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | 75 | 5 | 0/1200 | 7.217 ± 0.714 | 18.56 ± 0.99 | 18.76 | 33.39 | 1.00 | 13.26 ± 3.36 | 13.79 | 12.16 ± 0.58 | 12.14 | 0.02 ± 0.03 | 743 ± 6 | 347.5 ± 0.0 | 8.8 ± 0.4 |
 | 100 | 5 | 0/1200 | 11.196 ± 1.202 | 29.98 ± 3.93 | 30.40 | 46.22 | 1.32 | 23.30 ± 3.29 | 22.78 | 18.06 ± 1.58 | 18.04 | 0.21 ± 0.21 | 1034 ± 52 | 463.1 ± 0.1 | 11.8 ± 0.5 |
 
-## E2 Bandwidth regulator (N = 10)
+## Publication rate, N = 10 (e2_publication_rate, not reported in the paper)
 
-| regulator | reps | uplink KiB/s | msgs/s | dup | stale % | tele p99 | tele p99 pooled | frame p99 | frame p99 pooled |
+| publication | reps | uplink KiB/s | msgs/s | dup | stale % | tele p99 | tele p99 pooled | frame p99 | frame p99 pooled |
 |---|---|---|---|---|---|---|---|---|---|
-| ON | 5 | 46.4 ± 0.0 | 83.6 ± 0.0 | 95 ± 4 | 0.00 ± 0.00 | 2.04 ± 0.11 | 2.04 | 0.93 ± 0.10 | 0.92 |
-| OFF | 5 | 277.6 ± 0.1 | 500.2 ± 0.1 | 12545 ± 3 | 0.00 ± 0.00 | 1.67 ± 0.37 | 1.72 | 0.99 ± 0.18 | 1.07 |
+| 8.33 Hz | 5 | 46.4 ± 0.0 | 83.6 ± 0.0 | 95 ± 4 | 0.00 ± 0.00 | 2.04 ± 0.11 | 2.04 | 0.93 ± 0.10 | 0.92 |
+| 50 Hz | 5 | 277.6 ± 0.1 | 500.2 ± 0.1 | 12545 ± 3 | 0.00 ± 0.00 | 1.67 ± 0.37 | 1.72 | 0.99 ± 0.18 | 1.07 |
 
-| ratio OFF/ON | mean | std | reps |
+| ratio 50 Hz / 8.33 Hz | mean | std | reps |
 |---|---|---|---|
 | uplink_Bps | 5.99 | 0.00 | 5 |
 | dup_updates | 131.92 | 5.06 | 5 |
 
-## E3 Swarm-reaction latency
+## E2 Swarm-reaction latency at 8.33 Hz (e3_swarm)
 
 | N | reps | events | p50 | p99 | mean pooled | p50 pooled | p95 pooled | p99 pooled | max pooled | n pooled | % ≤125 ms | % ≤250 ms | frame p99 pooled | overruns/frames |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -35,7 +35,7 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | 25 | 5 | 4139 ± 113 | 62.9 ± 0.9 | 122.8 ± 0.9 | 63.2 | 63.1 | 117.8 | 123.0 | 134.2 | 20694 | 99.7 | 100.0 | 5.24 | 0/1600 |
 | 50 | 5 | 13470 ± 178 | 65.3 ± 0.6 | 130.5 ± 1.2 | 66.2 | 65.4 | 124.1 | 130.8 | 287.6 | 67350 | 95.6 | 99.9 | 10.78 | 0/1600 |
 
-## E4 Twin fidelity under packet loss (regulator ON)
+## E3 Twin fidelity under packet loss, publication at 8.33 Hz (e4_fidelity)
 
 | loss | reps | lost msgs | stale % | pos RMSE m | pos RMSE pooled | pos p99 m | pos p99 pooled | max stale err pooled | hdg RMSE deg | hdg p99 deg |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -66,7 +66,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 10 % | surface | 2 | 49 | 0.681 | 0.606 |
 | 10 % | surface | >=3 | 3 | 1.111 | 0.606 |
 
-## E4 Twin fidelity under packet loss (regulator OFF)
+## E3 Twin fidelity under packet loss, publication at 50 Hz (e4_fidelity_50hz)
 
 | loss | reps | lost msgs | stale % | pos RMSE m | pos RMSE pooled | pos p99 m | pos p99 pooled | max stale err pooled | hdg RMSE deg | hdg p99 deg |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -85,7 +85,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 10 % | aerial | 0 | 5985 | 0.232 | 0.232 |
 | 10 % | surface | 0 | 5987 | 0.150 | 0.150 |
 
-## E5 Resource footprint of the Mission-DT process
+## E4 Resource footprint of the Mission-DT process (e5_resources)
 
 | N | reps | CPU % of one core | peak RSS MiB | frames | overruns |
 |---|---|---|---|---|---|
@@ -94,7 +94,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 50 | 5 | 5.8 ± 0.2 | 23.8 ± 0.1 | 240 ± 0 | 0 ± 0 |
 | 100 | 5 | 12.1 ± 0.2 | 24.8 ± 0.0 | 240 ± 0 | 0 ± 0 |
 
-## E6 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo
+## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e6_comparison)
 
 Per process, over the measured window: CPU = (utime + stime) / wall in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the window. All processes on core 0. *total* sums the processes of the stack.
 
@@ -147,23 +147,31 @@ Gazebo real-time factor over the window (sim time / wall time; 1 ms physics step
 | 50 | 5 | 0.744 ± 0.014 | 0.192 ± 0.021 | 744 ± 14 | 50 ± 0 | 6.15 ± 0.12 | 2.7 ± 0.0 |
 | 100 | 5 | 0.329 ± 0.006 | 0.095 ± 0.012 | 329 ± 6 | 100 ± 0 | 2.71 ± 0.05 | 2.8 ± 0.0 |
 
-## E7 Hybrid fleet: ArduRover SITL boats and virtual agents
+ROS 2 mission node + Gazebo server (sum of the means of separate runs; std = square root of the sum of the variances):
 
-Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter + local broker bridged to the ground-station broker (core 1); ground station and virtual agents on core 0. Latencies pooled over all runs (ms).
+| N | CPU % of one core | peak RSS MiB |
+|---|---|---|
+| 10 | 51.6 ± 0.9 | 216.2 |
+| 50 | 116.5 ± 3.8 | 338.6 |
+| 100 | 125.9 ± 2.1 | 492.1 |
+
+## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e7_hybrid)
+
+Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter connected to the ground-station broker (core 1); ground station (broker, mission core) and virtual agents on core 0. Latencies pooled over all runs (ms).
 
 N_SITL = 2, runs = 5: overruns/frames 0/1600, frame p99 0.88, commands to the autopilot 3200, discarded (older than T_f) 0.
 
 | agent kind | tele p50 | tele p99 | act p50 | act p99 |
 |---|---|---|---|---|
-| physical | 0.47 | 0.95 | 0.85 | 1.57 |
-| virtual | 0.47 | 1.68 | 0.83 | 1.52 |
+| physical | 0.40 | 1.25 | 0.72 | 1.99 |
+| virtual | 0.39 | 1.61 | 0.70 | 2.07 |
 
 Swarm-reaction latency by receiver <- trigger kind:
 
 | receiver <- trigger | runs | commands | p5 | p50 | p95 | max | % <= 125 ms |
 |---|---|---|---|---|---|---|---|
-| physical<-physical | 2 | 161 | 11.4 | 64.2 | 115.6 | 124.2 | 100.0 |
-| physical<-virtual | 5 | 2175 | 7.1 | 61.8 | 115.9 | 123.7 | 100.0 |
-| virtual<-physical | 5 | 2653 | 7.9 | 60.8 | 115.5 | 132.2 | 99.7 |
-| virtual<-virtual | 5 | 5913 | 7.1 | 61.8 | 116.4 | 124.5 | 100.0 |
+| physical<-physical | 4 | 312 | 7.4 | 61.3 | 115.7 | 134.5 | 99.4 |
+| physical<-virtual | 5 | 2067 | 6.8 | 61.6 | 115.6 | 180.9 | 99.9 |
+| virtual<-physical | 5 | 2502 | 7.6 | 60.2 | 115.1 | 134.3 | 99.7 |
+| virtual<-virtual | 5 | 5955 | 6.7 | 61.6 | 116.4 | 163.7 | 99.9 |
 
