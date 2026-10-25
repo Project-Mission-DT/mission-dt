@@ -10,6 +10,11 @@ Twin for Hybrid Fleets of Physical and Virtual Unmanned Vehicles"* (SBESC
 every run, and the scripts that compute the values of the tables and figures
 of the paper.
 
+**Paper version.** The code and data of the SBESC 2026 paper are fixed at
+tag [`v1.0-sbesc2026`](https://github.com/Project-Mission-DT/mission-dt/tree/v1.0-sbesc2026)
+([release](https://github.com/Project-Mission-DT/mission-dt/releases/tag/v1.0-sbesc2026)).
+The `main` branch continues the project after that version.
+
 ## Contents
 1. [Model](#model)
 2. [Scope of the evaluation](#scope-of-the-evaluation)
