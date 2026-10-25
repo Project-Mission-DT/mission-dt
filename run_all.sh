@@ -1,7 +1,7 @@
 #!/bin/bash
 # Mission-DT -- run the experiment battery (E1 to E4 of the paper, the
-# publication-rate measurement, and the diagnostic figures). E5 (run_e6.py)
-# and E6 (run_e7.py) run outside this script.
+# publication-rate measurement, and the diagnostic figures). E5 (run_e5.py)
+# and E6 (run_e6.py) run outside this script.
 # Usage, from anywhere:   bash run_all.sh            (one run, into results/)
 #                         REPS=5 bash run_all.sh     (five runs, into results/rep1..rep5/)
 # Cross-platform: finds the venv's python executable directly by path
@@ -77,17 +77,17 @@ for r in $(seq 1 "$REPS"); do
     if [ "$REPS" -gt 1 ]; then export MDT_RESULTS="results/rep$r"; echo "== Repetition $r/$REPS =="; fi
 
     echo "== E1 + publication rate (frame compute time; 8.33 Hz vs. 50 Hz, ~6 min) =="
-    $PIN "$PYTHON" experiments/run_experiments.py
+    $PIN "$PYTHON" experiments/run_e1.py
 
     echo "== E2 (swarm-reaction latency, ~2.5 min) =="
-    $PIN "$PYTHON" experiments/run_e3.py
+    $PIN "$PYTHON" experiments/run_e2.py
 
     echo "== E3 (twin fidelity vs. packet loss, 8.33 Hz and 50 Hz publication, ~4 min) =="
-    $PIN "$PYTHON" experiments/run_e4.py
-    $PIN "$PYTHON" experiments/run_e4.py --publish-all
+    $PIN "$PYTHON" experiments/run_e3.py
+    $PIN "$PYTHON" experiments/run_e3.py --publish-all
 
     echo "== E4 (CPU and memory of the Mission-DT process, ~2.5 min) =="
-    $PIN "$PYTHON" experiments/run_e5.py
+    $PIN "$PYTHON" experiments/run_e4.py
 
     echo "== Figures =="
     "$PYTHON" experiments/make_figures.py

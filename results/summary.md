@@ -15,7 +15,7 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | 75 | 5 | 0/1200 | 7.217 ± 0.714 | 18.56 ± 0.99 | 18.76 | 33.39 | 1.00 | 13.26 ± 3.36 | 13.79 | 12.16 ± 0.58 | 12.14 | 0.02 ± 0.03 | 743 ± 6 | 347.5 ± 0.0 | 8.8 ± 0.4 |
 | 100 | 5 | 0/1200 | 11.196 ± 1.202 | 29.98 ± 3.93 | 30.40 | 46.22 | 1.32 | 23.30 ± 3.29 | 22.78 | 18.06 ± 1.58 | 18.04 | 0.21 ± 0.21 | 1034 ± 52 | 463.1 ± 0.1 | 11.8 ± 0.5 |
 
-## Publication rate, N = 10 (e2_publication_rate, not reported in the paper)
+## Publication rate, N = 10 (publication_rate, not reported in the paper)
 
 | publication | reps | uplink KiB/s | msgs/s | dup | stale % | tele p99 | tele p99 pooled | frame p99 | frame p99 pooled |
 |---|---|---|---|---|---|---|---|---|---|
@@ -27,7 +27,7 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | uplink_Bps | 5.99 | 0.00 | 5 |
 | dup_updates | 131.92 | 5.06 | 5 |
 
-## E2 Swarm-reaction latency at 8.33 Hz (e3_swarm)
+## E2 Swarm-reaction latency at 8.33 Hz (e2_swarm)
 
 | N | reps | events | p50 | p99 | mean pooled | p50 pooled | p95 pooled | p99 pooled | max pooled | n pooled | % ≤125 ms | % ≤250 ms | frame p99 pooled | overruns/frames |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -35,7 +35,7 @@ Repetitions: rep1, rep2, rep3, rep4, rep5. Cells show mean ± sample standard de
 | 25 | 5 | 4139 ± 113 | 62.9 ± 0.9 | 122.8 ± 0.9 | 63.2 | 63.1 | 117.8 | 123.0 | 134.2 | 20694 | 99.7 | 100.0 | 5.24 | 0/1600 |
 | 50 | 5 | 13470 ± 178 | 65.3 ± 0.6 | 130.5 ± 1.2 | 66.2 | 65.4 | 124.1 | 130.8 | 287.6 | 67350 | 95.6 | 99.9 | 10.78 | 0/1600 |
 
-## E3 Twin fidelity under packet loss, publication at 8.33 Hz (e4_fidelity)
+## E3 Twin fidelity under packet loss, publication at 8.33 Hz (e3_fidelity)
 
 | loss | reps | lost msgs | stale % | pos RMSE m | pos RMSE pooled | pos p99 m | pos p99 pooled | max stale err pooled | hdg RMSE deg | hdg p99 deg |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -66,7 +66,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 10 % | surface | 2 | 49 | 0.681 | 0.606 |
 | 10 % | surface | >=3 | 3 | 1.111 | 0.606 |
 
-## E3 Twin fidelity under packet loss, publication at 50 Hz (e4_fidelity_50hz)
+## E3 Twin fidelity under packet loss, publication at 50 Hz (e3_fidelity_50hz)
 
 | loss | reps | lost msgs | stale % | pos RMSE m | pos RMSE pooled | pos p99 m | pos p99 pooled | max stale err pooled | hdg RMSE deg | hdg p99 deg |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -85,7 +85,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 10 % | aerial | 0 | 5985 | 0.232 | 0.232 |
 | 10 % | surface | 0 | 5987 | 0.150 | 0.150 |
 
-## E4 Resource footprint of the Mission-DT process (e5_resources)
+## E4 Resource footprint of the Mission-DT process (e4_resources)
 
 | N | reps | CPU % of one core | peak RSS MiB | frames | overruns |
 |---|---|---|---|---|---|
@@ -94,7 +94,7 @@ Pooled error by domain and stale streak m (dead reckoning vs. hold of the last r
 | 50 | 5 | 5.8 ± 0.2 | 23.8 ± 0.1 | 240 ± 0 | 0 ± 0 |
 | 100 | 5 | 12.1 ± 0.2 | 24.8 ± 0.0 | 240 ± 0 | 0 ± 0 |
 
-## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e6_comparison)
+## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e5_comparison)
 
 Per process, over the measured window: CPU = (utime + stime) / wall in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the window. All processes on core 0. *total* sums the processes of the stack.
 
@@ -155,7 +155,7 @@ ROS 2 mission node + Gazebo server (sum of the means of separate runs; std = squ
 | 50 | 116.5 ± 3.8 | 338.6 |
 | 100 | 125.9 ± 2.1 | 492.1 |
 
-## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e7_hybrid)
+## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e6_hybrid)
 
 Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter connected to the ground-station broker (core 1); ground station (broker, mission core) and virtual agents on core 0. Latencies pooled over all runs (ms).
 

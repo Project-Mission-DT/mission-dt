@@ -156,31 +156,32 @@ publication-rate measurement, and writes the diagnostic figures of
 `results/summary.json` and `results/summary.md`. One run takes about 15 min.
 A broker that already runs keeps its own configuration.
 
-The script and output file names do not follow the experiment numbers of the
-paper; the table maps each experiment of the paper to its script and output
-file.
+The script and output file names follow the experiment numbers of the paper.
+Up to tag `v1.0-sbesc2026` (the paper version) they used older names;
+`results/README.md` maps the former names to the current ones. The table maps
+each experiment of the paper to its script and output file.
 
 | Paper experiment | RQ | Command | Output file |
 |---|---|---|---|
-| E1 frame compute time, N = 1 to 100, 8.33 Hz | RQ1 | `python experiments/run_experiments.py e1` | `e1_scalability.json` |
-| E2 swarm-reaction latency, N = 10, 25, 50, 8.33 Hz | RQ2 | `python experiments/run_e3.py` | `e3_swarm.json` |
-| E2 at 50 Hz publication | RQ2 | `python experiments/run_e3.py --publish-all [N ...]` | `e3_swarm_50hz.json` |
-| E3 twin fidelity at 0, 5, and 10% loss, N = 10, 8.33 Hz | RQ3 | `python experiments/run_e4.py` | `e4_fidelity.json` |
-| E3 at 50 Hz publication | RQ3 | `python experiments/run_e4.py --publish-all` | `e4_fidelity_50hz.json` |
-| E4 CPU and peak memory of the core process, N = 0, 10, 50, 100 | RQ4 | `python experiments/run_e5.py` | `e5_resources.json` |
-| E5 Mission-DT vs. ROS 2 vs. Gazebo, N = 10, 50, 100 (outside `run_all.sh`) | RQ4 | `taskset -c 0 python3.12 experiments/run_e6.py` | `e6_comparison.json` |
-| E6 hybrid fleet: 2 ArduRover SITL boats + 8 virtual agents (outside `run_all.sh`) | RQ2 | `python experiments/run_e7.py [n_sitl n_virtual]` | `e7_hybrid.json` |
-| Publication rate at N = 10, 8.33 Hz vs. 50 Hz (additional measurement, not reported in the paper) | | `python experiments/run_experiments.py rate` | `e2_publication_rate.json` |
+| E1 frame compute time, N = 1 to 100, 8.33 Hz | RQ1 | `python experiments/run_e1.py e1` | `e1_scalability.json` |
+| E2 swarm-reaction latency, N = 10, 25, 50, 8.33 Hz | RQ2 | `python experiments/run_e2.py` | `e2_swarm.json` |
+| E2 at 50 Hz publication | RQ2 | `python experiments/run_e2.py --publish-all [N ...]` | `e2_swarm_50hz.json` |
+| E3 twin fidelity at 0, 5, and 10% loss, N = 10, 8.33 Hz | RQ3 | `python experiments/run_e3.py` | `e3_fidelity.json` |
+| E3 at 50 Hz publication | RQ3 | `python experiments/run_e3.py --publish-all` | `e3_fidelity_50hz.json` |
+| E4 CPU and peak memory of the core process, N = 0, 10, 50, 100 | RQ4 | `python experiments/run_e4.py` | `e4_resources.json` |
+| E5 Mission-DT vs. ROS 2 vs. Gazebo, N = 10, 50, 100 (outside `run_all.sh`) | RQ4 | `taskset -c 0 python3.12 experiments/run_e5.py` | `e5_comparison.json` |
+| E6 hybrid fleet: 2 ArduRover SITL boats + 8 virtual agents (outside `run_all.sh`) | RQ2 | `python experiments/run_e6.py [n_sitl n_virtual]` | `e6_hybrid.json` |
+| Publication rate at N = 10, 8.33 Hz vs. 50 Hz (additional measurement, not reported in the paper) | | `python experiments/run_e1.py rate` | `publication_rate.json` |
 | Summary over runs | | `python experiments/aggregate.py results/rep1 ... results/rep5` | `summary.json`, `summary.md` |
 | Values and PNGs of Figs. 3, 5, 6 | | `python experiments/paper_figures.py` | `doc/figures/` |
 
-`python experiments/run_experiments.py` without an argument runs E1 and the
+`python experiments/run_e1.py` without an argument runs E1 and the
 publication-rate measurement. `--publish-all` makes every agent publish each
 50 Hz sample. Every script reads and writes the directory in `MDT_RESULTS`
-(default `results/`), e.g. `MDT_RESULTS=results/rep1 python experiments/run_e3.py`.
+(default `results/`), e.g. `MDT_RESULTS=results/rep1 python experiments/run_e2.py`.
 
 ### E5 stacks
-`experiments/run_e6.py` runs the same fleet (goals on the E4 grid) on three
+`experiments/run_e5.py` runs the same fleet (goals on the E4 grid) on three
 stacks, one after the other, with every process pinned to core 0 (child
 processes inherit the affinity). The script reads `MDT_ROS_SETUP` (default
 `/opt/ros/jazzy/setup.bash`) and starts its own broker, so port 1883 must be
@@ -193,7 +194,7 @@ free.
 | `gazebo` | gz sim server | `gz sim -s -r --headless-rendering` with a generated SDF world: N box vehicles on the goal grid, `VelocityControl` with a constant twist (2 m/s surface, 12 m/s aerial), and `OdometryPublisher` at 8.33 Hz; Physics system only, no gravity, 1 ms step, target real-time factor 1. No mission layer. A monitor process subscribes to `/world/e6/stats` and to every odometry topic; the table reports its CPU and memory as `monitor`, outside the stack total. |
 
 ### E6 setup
-`experiments/run_e7.py` repeats the E2 scenario (circle of radius 40 m,
+`experiments/run_e6.py` repeats the E2 scenario (circle of radius 40 m,
 antipodal goals, `d_sep` = 12 m, 40 s) with ten surface agents. Two agents
 are physical agents. The script starts one MQTT broker at the ground station
 and, for each physical agent, an ArduRover SITL instance and a
@@ -237,7 +238,7 @@ The script waits for the retained registrations of both SITL boats (about
 
 ## Results
 All values come from `results/rep1/` to `results/rep5/` (and
-`results/e3_50hz_n50_extra/` for E2 at 50 Hz and N = 50).
+`results/e2_50hz_n50_extra/` for E2 at 50 Hz and N = 50).
 `results/summary.md` holds every aggregated metric, and
 `doc/figures/paper_figures.json` holds the plotted values of Figs. 3, 5, and 6.
 
@@ -383,8 +384,8 @@ messages by about 40 ms on Linux.
 ### Other result directories and files
 | Directory or file | Content |
 |---|---|
-| `results/rep<r>/e2_publication_rate.json` | Additional publication-rate measurement, not reported in the paper: N = 10 agents publishing at 8.33 Hz and at 50 Hz (uplink traffic, messages per second, redundant samples, latencies), five runs; `results/summary.md` aggregates it. |
-| `results/e3_50hz_n50_extra/` | Five more runs of E2 at 50 Hz and N = 50 (`run1/` to `run5/`). |
+| `results/rep<r>/publication_rate.json` | Additional publication-rate measurement, not reported in the paper: N = 10 agents publishing at 8.33 Hz and at 50 Hz (uplink traffic, messages per second, redundant samples, latencies), five runs; `results/summary.md` aggregates it. |
+| `results/e2_50hz_n50_extra/` | Five more runs of E2 at 50 Hz and N = 50 (`run1/` to `run5/`). |
 | `results/other_instance/` | Two runs on a second VM instance of the same type; the p99 frame time at N = 100 reached 54.3 ms, without overruns. The second run stops after E2. |
 | `results/single_run/` | One earlier run of E1 to E3 and of the publication-rate measurement, before the instrumentation hooks moved out of the timed frame interval. |
 | `results/rerun_client_nagle/` | One run before `TCP_NODELAY` on the client sockets (actuation p99 near 43 ms). |
@@ -405,7 +406,7 @@ python -m pytest tests
 | Path | Content |
 |---|---|
 | `mission_dt/` | `model.py` (`Γ` and its functions), `core.py` (MQTT I/O and frame loop), `agents.py` (virtual agents), `mavlink_adapter.py` (MAVLink-to-MQTT adapter of a physical agent), `core_orig.py` (core of the submitted version) |
-| `experiments/` | `run_experiments.py` (E1 and the publication-rate measurement), `run_e3.py` (E2), `run_e4.py` (E3), `run_e5.py` (E4), `run_e6.py` (E5), `run_e7.py` (E6), `aggregate.py`, `paper_figures.py`, `make_figures.py`, `demo_mission.py`, `staged_photo.py`, `panel.py`, `clear_retained.py` |
+| `experiments/` | `run_e1.py` (E1 and the publication-rate measurement), `run_e2.py` (E2), `run_e3.py` (E3), `run_e4.py` (E4), `run_e5.py` (E5), `run_e6.py` (E6), `aggregate.py`, `paper_figures.py`, `make_figures.py`, `demo_mission.py`, `staged_photo.py`, `panel.py`, `clear_retained.py` |
 | `viz/` | 3D mission view (Ursina) |
 | `configs/` | Mission configuration files; `sitl_boat.parm` (ArduRover SITL defaults of E6) |
 | `results/` | Raw data of every run (JSON), `summary.json` and `summary.md`, logs; see `results/README.md` |

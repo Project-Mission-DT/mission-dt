@@ -10,11 +10,10 @@ e1    E1, frame compute time: N in {1,2,5,10,25,50,75,100} virtual agents,
 rate  Publication rate: 10 agents publishing at 8.33 Hz (one of every six
       50 Hz samples) and at 50 Hz (every sample). Metrics: bytes/s on the
       wire, latency, duplicate updates per frame. Output:
-      e2_publication_rate.json (not reported in the paper; "e2" is accepted
-      as the former name of this option)
+      publication_rate.json (not reported in the paper)
 all   both (default)
 
-    python experiments/run_experiments.py [e1 | rate | all]
+    python experiments/run_e1.py [e1 | rate | all]
 """
 import gc
 import json
@@ -115,7 +114,7 @@ if __name__ == "__main__":
             time.sleep(2)
         json.dump(out, open(f"{RES}/e1_scalability.json", "w"))
 
-    if which in ("rate", "e2", "all"):
+    if which in ("rate", "all"):
         out = []
         for dec in (True, False):
             print(f"[rate] publication {'8.33' if dec else '50'} Hz ...", flush=True)
@@ -126,5 +125,5 @@ if __name__ == "__main__":
                   f"tele_p99={r['telemetry_lat_ms']['p99']:.2f}ms "
                   f"dup={r['dup_updates']}", flush=True)
             time.sleep(2)
-        json.dump(out, open(f"{RES}/e2_publication_rate.json", "w"))
+        json.dump(out, open(f"{RES}/publication_rate.json", "w"))
     print("done")

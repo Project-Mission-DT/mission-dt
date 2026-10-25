@@ -4,9 +4,9 @@ Aggregate the repetitions of the experiment battery (E1 to E6 of the paper).
     python experiments/aggregate.py results/rep*
 
 Each argument is a repetition directory holding the JSON files written by
-run_experiments.py (E1 and the publication-rate measurement), run_e3.py (E2),
-run_e4.py (E3, with and without --publish-all), run_e5.py (E4), run_e6.py (E5)
-and run_e7.py (E6). Missing files are skipped. The script writes summary.json
+run_e1.py (E1 and the publication-rate measurement), run_e2.py (E2),
+run_e3.py (E3, with and without --publish-all), run_e4.py (E4), run_e5.py (E5)
+and run_e6.py (E6). Missing files are skipped. The script writes summary.json
 and summary.md into the parent directory of the first argument; the keys of
 summary.json are the stems of the result files.
 
@@ -31,13 +31,13 @@ RATE_FIELD = "decimate"
 FILES = [
     # (file stem, configuration key); paper experiment in the comment
     ("e1_scalability", "n_agents"),              # E1
-    ("e2_publication_rate", RATE_FIELD),         # not in the paper
-    ("e3_swarm", "n_agents"),                    # E2
-    ("e4_fidelity", "loss"),                     # E3, 8.33 Hz
-    ("e4_fidelity_50hz", "loss"),                # E3, 50 Hz
-    ("e5_resources", "n_agents"),                # E4
-    ("e6_comparison", ("stack", "n_agents")),    # E5
-    ("e7_hybrid", "n_sitl"),                     # E6
+    ("publication_rate", RATE_FIELD),            # not in the paper
+    ("e2_swarm", "n_agents"),                    # E2
+    ("e3_fidelity", "loss"),                     # E3, 8.33 Hz
+    ("e3_fidelity_50hz", "loss"),                # E3, 50 Hz
+    ("e4_resources", "n_agents"),                # E4
+    ("e5_comparison", ("stack", "n_agents")),    # E5
+    ("e6_hybrid", "n_sitl"),                     # E6
 ]
 # Fields that identify or parametrise a run; they are not metrics.
 CONFIG_FIELDS = {"n_agents", RATE_FIELD, "loss", "duration_s", "sep_m", "n_sitl", "n_virtual"}
@@ -45,7 +45,7 @@ FRAME_MS = 125.0
 HIST_BIN_MS, HIST_MAX_MS = 10.0, 300.0
 STREAK_BINS = ["0", "1", "2", ">=3"]
 DOMAINS = ["aerial", "surface"]
-COMPARISON_STACKS = ["mission_dt", "ros2", "gazebo"]      # order of the E5 tables (e6_comparison.json)
+COMPARISON_STACKS = ["mission_dt", "ros2", "gazebo"]      # order of the E5 tables (e5_comparison.json)
 COMPARISON_PROCS = {"mission_dt": ["core", "agents", "broker"], "ros2": ["core", "agents"],
             "gazebo": ["gz_sim"]}
 
@@ -202,7 +202,7 @@ def summarise_timing(recs_by_rep):
     return p
 
 
-def summarise_e7(recs_by_rep):
+def summarise_e6(recs_by_rep):
     """Pooled E6 statistics: latencies by agent kind and swarm-reaction latency
     by the kinds of the receiver and of the triggering agent."""
     recs = list(recs_by_rep.values())
@@ -227,7 +227,7 @@ def summarise_e7(recs_by_rep):
     return p
 
 
-def summarise_e3(recs_by_rep):
+def summarise_e2(recs_by_rep):
     p = {}
     lat = sorted(x for x in pool(recs_by_rep, "raw_swarm_lat_ms") if is_num(x))
     s = pooled_stats(lat, (50, 95, 99))
@@ -262,7 +262,7 @@ def summarise_e3(recs_by_rep):
     return p
 
 
-def summarise_e4(recs_by_rep):
+def summarise_e3(recs_by_rep):
     rows = [r for r in pool(recs_by_rep, "rows_dom_m_err_hold")
             if isinstance(r, (list, tuple)) and len(r) >= 4]
     p = {}
@@ -323,18 +323,18 @@ def summarise(data):
             c = dict(zip(key, val)) if isinstance(key, tuple) else {key: val}
             c.update({"reps": sorted(recs), "n_reps": len(recs),
                       "metrics": per_rep_metrics(recs)})
-            if stem in ("e1_scalability", "e2_publication_rate"):
+            if stem in ("e1_scalability", "publication_rate"):
                 c["pooled"] = summarise_timing(recs)
-            elif stem == "e3_swarm":
+            elif stem == "e2_swarm":
+                c["pooled"] = summarise_e2(recs)
+            elif stem.startswith("e3_"):
                 c["pooled"] = summarise_e3(recs)
-            elif stem.startswith("e4_"):
-                c["pooled"] = summarise_e4(recs)
-            elif stem == "e7_hybrid":
-                c["pooled"] = summarise_e7(recs)
+            elif stem == "e6_hybrid":
+                c["pooled"] = summarise_e6(recs)
             configs.append(c)
         entry = {"config_key": ",".join(key) if isinstance(key, tuple) else key,
                  "configs": configs}
-        if stem == "e2_publication_rate":
+        if stem == "publication_rate":
             entry["ratio_off_on"] = ratio_off_on(grouped)
         summary[stem] = entry
     return summary
@@ -402,9 +402,9 @@ def render_md(summary, meta):
                     "stale %", "dup", "uplink KiB/s", "core CPU %"], rows)
         L.append("")
 
-    e = summary.get("e2_publication_rate")
+    e = summary.get("publication_rate")
     if e:
-        L += ["## Publication rate, N = 10 (e2_publication_rate, not reported in the paper)", ""]
+        L += ["## Publication rate, N = 10 (publication_rate, not reported in the paper)", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
@@ -421,9 +421,9 @@ def render_md(summary, meta):
             L.append(f"| {k} | {f(r[k]['mean'])} | {f(r[k]['std'])} | {r[k]['n']} |")
         L.append("")
 
-    e = summary.get("e3_swarm")
+    e = summary.get("e2_swarm")
     if e:
-        L += ["## E2 Swarm-reaction latency at 8.33 Hz (e3_swarm)", ""]
+        L += ["## E2 Swarm-reaction latency at 8.33 Hz (e2_swarm)", ""]
         rows = []
         for c in e["configs"]:
             m, p = c["metrics"], c["pooled"]
@@ -441,8 +441,8 @@ def render_md(summary, meta):
                     "% ≤125 ms", "% ≤250 ms", "frame p99 pooled", "overruns/frames"], rows)
         L.append("")
 
-    for stem, title in (("e4_fidelity", "publication at 8.33 Hz"),
-                        ("e4_fidelity_50hz", "publication at 50 Hz")):
+    for stem, title in (("e3_fidelity", "publication at 8.33 Hz"),
+                        ("e3_fidelity_50hz", "publication at 50 Hz")):
         e = summary.get(stem)
         if not e:
             continue
@@ -471,9 +471,9 @@ def render_md(summary, meta):
             L += table(["loss", "domain", "m", "count", "DR RMSE m", "hold RMSE m"], srows)
         L.append("")
 
-    e = summary.get("e5_resources")
+    e = summary.get("e4_resources")
     if e:
-        L += ["## E4 Resource footprint of the Mission-DT process (e5_resources)", ""]
+        L += ["## E4 Resource footprint of the Mission-DT process (e4_resources)", ""]
         rows = [[c["n_agents"], c["n_reps"], ms(c["metrics"], "cpu_pct", 1),
                  ms(c["metrics"], "peak_rss_mib", 1), ms(c["metrics"], "frames", 0),
                  ms(c["metrics"], "overruns", 0)] for c in e["configs"]]
@@ -481,9 +481,9 @@ def render_md(summary, meta):
                     "overruns"], rows)
         L.append("")
 
-    e = summary.get("e6_comparison")
+    e = summary.get("e5_comparison")
     if e:
-        L += ["## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e6_comparison)", "",
+        L += ["## E5 Resource comparison: Mission-DT (MQTT), ROS 2, Gazebo (e5_comparison)", "",
               "Per process, over the measured window: CPU = (utime + stime) / wall "
               "in % of one core; peak RSS = VmHWM; RSS end = VmRSS at the end of the "
               "window. All processes on core 0. *total* sums the processes of the stack.", ""]
@@ -554,9 +554,9 @@ def render_md(summary, meta):
             L += table(["N", "CPU % of one core", "peak RSS MiB"], rows)
         L.append("")
 
-    e = summary.get("e7_hybrid")
+    e = summary.get("e6_hybrid")
     if e:
-        L += ["## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e7_hybrid)", "",
+        L += ["## E6 Hybrid fleet: ArduRover SITL boats and virtual agents (e6_hybrid)", "",
               "Physical agents: ArduRover SITL (motorboat) + MAVLink-to-MQTT adapter connected "
               "to the ground-station broker (core 1); ground station (broker, mission core) and "
               "virtual agents on core 0. Latencies pooled over all runs (ms).", ""]

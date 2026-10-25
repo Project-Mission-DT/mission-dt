@@ -1,151 +1,114 @@
 """
-E3 of the paper -- Twin fidelity under packet loss.
+E4 of the paper -- Resource footprint of the Mission-DT process.
 
-Question: how faithful is the twin's state estimate, and how does it
-degrade when the network drops telemetry?
+The mission core runs in its own process and the N virtual agents run in a
+second process, so the CPU time and memory measured belong to the Mission-DT
+alone. Both processes use the MQTT broker on 127.0.0.1:1883.
 
-Method: virtual agents log their ground-truth pose at 50 Hz; a logging
-subclass of the mission core records the twin's estimate (and the
-stale flag) at every frame. Each agent drops each telemetry message it
-would publish with i.i.d. probability p in {0, 5%, 10%}, before the MQTT
-publication. For every core sample we interpolate the ground truth
-at the same instant and compute position error (metres) and heading
-error (degrees, wrapped). Reported: RMSE, p99, worst error observed
-during stale (dead-reckoned) frames.
+Measured in the Mission-DT process during the 30 s run:
+    CPU utilisation = (user + system CPU time) / wall time, in % of one core
+    peak resident memory (VmHWM on Linux, ru_maxrss elsewhere), in MiB
+Baseline: the same process with the core connected and no agent.
 
-    python experiments/run_e4.py [--publish-all] [loss ...]   # default: 0 0.05 0.10
-Agents publish at 8.33 Hz (one of every six 50 Hz samples) and the script
-writes e4_fidelity.json; with --publish-all they publish every 50 Hz sample
-and the script writes e4_fidelity_50hz.json.
+    python experiments/run_e4.py [N ...]          # default: 0 10 50 100
 """
-import bisect
 import json
-import math
 import os
-import statistics as st
+import resource
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from mission_dt.core import MissionDT
-from mission_dt.agents import (VirtualAgent, BASE_LAT, BASE_LON, RESULT_RATE_FIELD,
-                               PUBLISH_ALL_FLAGS, publish_all_requested)
-
 RES = os.environ.get("MDT_RESULTS") or str(ROOT / "results")
-os.makedirs(RES, exist_ok=True)
+DURATION = float(os.environ.get("MDT_E5_DURATION", "30"))
 
 
-class LoggingDT(MissionDT):
-    """Logs the state estimate of the mission twin once per frame (formal core hook).
-    Also logs the stale streak m and the last received state (hold estimate)."""
-    def __init__(self, *a, **k):
-        super().__init__(*a, on_frame=self._log, **k)
-        self.state_log = []   # (t, aid, lat, lon, yaw, stale, m, hold_lat, hold_lon)
-        self._streak, self._hold = {}, {}
-
-    def _log(self, M):
-        now = time.time()
-        for aid, B in M.B.items():
-            if not B.seeded:
-                continue
-            if B.stale:
-                self._streak[aid] = self._streak.get(aid, 0) + 1
-            else:
-                self._streak[aid] = 0
-                self._hold[aid] = (B.p[0], B.p[1])
-            h = self._hold.get(aid, (B.p[0], B.p[1]))
-            self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale,
-                                   self._streak[aid], h[0], h[1]))
+def goal(i, dom):
+    from mission_dt.agents import BASE_LAT, BASE_LON
+    return (BASE_LAT + 0.002 * (i % 7 - 3), BASE_LON + 0.002 * (i // 7 - 3),
+            15.0 if dom == "aerial" else 0.0)
 
 
-def wrap_deg(a):
-    return (a + 180.0) % 360.0 - 180.0
+def peak_rss_mib():
+    try:
+        with open("/proc/self/status") as f:
+            for line in f:
+                if line.startswith("VmHWM:"):
+                    return int(line.split()[1]) / 1024.0
+    except OSError:
+        pass
+    r = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return r / (1024.0 * 1024.0) if sys.platform == "darwin" else r / 1024.0
 
 
-def pctl(v, p):
-    s = sorted(v)
-    return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
+def child_core(n):
+    from mission_dt.core import MissionDT
+    dt = MissionDT()
+    goals = {f"rs{i:03d}": goal(i, "aerial" if i % 2 else "surface") for i in range(n)}
+    print("READY", flush=True)
+    sys.stdin.readline()                     # wait for the agents
+    c0, w0 = os.times(), time.monotonic()
+    dt.run(DURATION, goals=goals)
+    c1, w1 = os.times(), time.monotonic()
+    cpu = (c1.user - c0.user) + (c1.system - c0.system)
+    print(json.dumps({"n_agents": n, "wall_s": w1 - w0, "cpu_s": cpu,
+                      "cpu_pct": 100.0 * cpu / (w1 - w0),
+                      "peak_rss_mib": peak_rss_mib(),
+                      "frames": dt.frames, "overruns": dt.frame_overruns}), flush=True)
 
 
-def run_e4(loss, n_agents=10, duration=30.0, decimate=True):
-    dt = LoggingDT()
-    agents, goals = [], {}
-    for i in range(n_agents):
-        dom = "aerial" if i % 2 else "surface"
-        a = VirtualAgent(f"fd{i:02d}", domain=dom,
-                         duration_s=duration + 2, loss=loss,
-                         decimate=decimate)
-        agents.append(a)
-        goals[a.aid] = (BASE_LAT + 0.002 * (i % 7 - 3),
-                        BASE_LON + 0.002 * (i // 7 - 3),
-                        15.0 if dom == "aerial" else 0.0)
-    time.sleep(1.0)
+def child_agents(n):
+    from mission_dt.agents import VirtualAgent
+    agents = [VirtualAgent(f"rs{i:03d}", domain="aerial" if i % 2 else "surface",
+                           duration_s=DURATION + 2) for i in range(n)]
+    print("READY", flush=True)
+    sys.stdin.readline()
     for a in agents:
         a.start()
-    dt.run(duration, goals=goals)
     for a in agents:
-        a.join(timeout=5)
+        a.join(timeout=DURATION + 10)
+    print("DONE", flush=True)
 
-    truth = {a.aid: a.truth_log for a in agents}
-    times = {aid: [r[0] for r in log] for aid, log in truth.items()}
-    pos_err, hdg_err, stale_err, rows = [], [], [], []
-    dom = {a.aid: a.domain for a in agents}
-    for (t, aid, lat, lon, yaw, stale, m, hlat, hlon) in dt.state_log:
-        log, ts = truth[aid], times[aid]
-        i = bisect.bisect_left(ts, t)
-        if i == 0 or i >= len(ts):
-            continue
-        (t0, la0, lo0, y0), (t1, la1, lo1, y1) = log[i - 1], log[i]
-        f = (t - t0) / max(1e-9, t1 - t0)
-        tlat, tlon = la0 + f * (la1 - la0), lo0 + f * (lo1 - lo0)
-        tyaw = y0 + f * (wrap_deg(math.degrees(y1 - y0)) * math.pi / 180.0)
-        dy = (lat - tlat) * 111_320.0
-        dx = (lon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
-        pe = math.hypot(dx, dy)
-        he = abs(wrap_deg(math.degrees(yaw - tyaw)))
-        pos_err.append(pe)
-        hdg_err.append(he)
-        if stale:
-            stale_err.append(pe)
-        hy = (hlat - tlat) * 111_320.0
-        hx = (hlon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
-        rows.append((dom[aid], m, pe, math.hypot(hx, hy)))
-    frames_agents = len(dt.state_log)
-    lost = sum(a.lost_msgs for a in agents)
-    sent = sum(a.msgs_out for a in agents)
-    return {
-        "loss": loss, RESULT_RATE_FIELD: decimate,
-        "n_agents": n_agents, "duration_s": duration,
-        "samples": len(pos_err),
-        "lost_msgs": lost, "sent_msgs": sent,
-        "stale_pct": 100.0 * dt.stale_updates / max(1, frames_agents),
-        "pos_rmse_m": math.sqrt(st.mean(e * e for e in pos_err)),
-        "pos_p99_m": pctl(pos_err, 99),
-        "pos_max_stale_m": max(stale_err) if stale_err else 0.0,
-        "hdg_rmse_deg": math.sqrt(st.mean(e * e for e in hdg_err)),
-        "hdg_p99_deg": pctl(hdg_err, 99),
-        "rows_dom_m_err_hold": rows,
-    }
+
+def trial(n):
+    py = sys.executable
+    me = str(Path(__file__).resolve())
+    core = subprocess.Popen([py, me, "--core", str(n)], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, text=True)
+    assert core.stdout.readline().strip() == "READY"
+    ag = None
+    if n > 0:
+        ag = subprocess.Popen([py, me, "--agents", str(n)], stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, text=True)
+        assert ag.stdout.readline().strip() == "READY"
+    time.sleep(1.0)                          # registration settle
+    if ag:
+        ag.stdin.write("go\n"); ag.stdin.flush()
+    core.stdin.write("go\n"); core.stdin.flush()
+    r = json.loads(core.stdout.readline())
+    core.wait()
+    if ag:
+        ag.wait()
+    return r
 
 
 if __name__ == "__main__":
-    # python experiments/run_e4.py [--publish-all] [loss ...]
-    args = sys.argv[1:]
-    decimate = not publish_all_requested(args)
-    losses = [float(x) for x in args if x not in PUBLISH_ALL_FLAGS] or [0.0, 0.05, 0.10]
-    fn = f"{RES}/e4_fidelity.json" if decimate else f"{RES}/e4_fidelity_50hz.json"
-    out = json.load(open(fn)) if os.path.exists(fn) else []
-    out = [r for r in out if r["loss"] not in losses]
-    for L in losses:
-        print(f"[E3] loss={L:.0%} publication {'8.33' if decimate else '50'} Hz ...", flush=True)
-        r = run_e4(L, decimate=decimate)
+    if len(sys.argv) > 2 and sys.argv[1] == "--core":
+        child_core(int(sys.argv[2])); sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "--agents":
+        child_agents(int(sys.argv[2])); sys.exit(0)
+    sizes = [int(x) for x in sys.argv[1:]] or [0, 10, 50, 100]
+    os.makedirs(RES, exist_ok=True)
+    out = []
+    for n in sizes:
+        print(f"[E4] N={n} ...", flush=True)
+        r = trial(n)
         out.append(r)
-        json.dump(sorted(out, key=lambda x: x["loss"]), open(fn, "w"))
-        print(f"     pos RMSE={r['pos_rmse_m']:.2f} m  p99={r['pos_p99_m']:.2f} m"
-              f"  max(stale)={r['pos_max_stale_m']:.2f} m | "
-              f"hdg RMSE={r['hdg_rmse_deg']:.1f} deg | stale={r['stale_pct']:.1f}%",
-              flush=True)
+        json.dump(out, open(f"{RES}/e4_resources.json", "w"))
+        print(f"     cpu={r['cpu_pct']:.1f}% of one core  peak RSS={r['peak_rss_mib']:.1f} MiB "
+              f"overruns={r['overruns']}", flush=True)
         time.sleep(2)
     print("done")

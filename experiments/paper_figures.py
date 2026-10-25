@@ -1,6 +1,6 @@
 """Values and PNG versions of Figs. 3, 5 and 6 of the paper.
 
-Reads the five runs in results/rep1..rep5 (and results/e3_50hz_n50_extra/run1..run5
+Reads the five runs in results/rep1..rep5 (and results/e2_50hz_n50_extra/run1..run5
 for E2 at 50 Hz and N = 50), writes doc/figures/paper_figures.json with the plotted
 values and doc/figures/fig3_frame_time.png, fig5_swarm_latency.png and
 fig6_dead_reckoning.png. The paper draws the same values with pgfplots.
@@ -56,13 +56,13 @@ for i, n in enumerate(NS1):
                "max": max(pooled), "overruns": sum(rep[i]["overruns"] for rep in e1)}
 
 # ---------------------------------------------------------------- Fig. 5 (E2)
-e3 = load("e3_swarm.json")
-e3n = load("e3_swarm_50hz.json")
-extra_dir = os.path.join(R, "e3_50hz_n50_extra")
-extra = [json.load(open(os.path.join(extra_dir, f"run{k}", "e3_swarm_50hz.json")))[0]
+e2 = load("e2_swarm.json")
+e2n = load("e2_swarm_50hz.json")
+extra_dir = os.path.join(R, "e2_50hz_n50_extra")
+extra = [json.load(open(os.path.join(extra_dir, f"run{k}", "e2_swarm_50hz.json")))[0]
          for k in range(1, 6)] if os.path.isdir(extra_dir) else []
 fig5 = {}
-for rate, src in (("8.33 Hz", e3), ("50 Hz", e3n)):
+for rate, src in (("8.33 Hz", e2), ("50 Hz", e2n)):
     for i, n in enumerate([10, 25, 50]):
         runs = [rep[i] for rep in src]
         assert all(r["n_agents"] == n for r in runs)
@@ -79,7 +79,7 @@ for rate, src in (("8.33 Hz", e3), ("50 Hz", e3n)):
 
 # ---------------------------------------------------------------- Fig. 6 (E3)
 cells = defaultdict(list)
-for rep in load("e4_fidelity.json"):
+for rep in load("e3_fidelity.json"):
     for row in rep:
         for dom, m, err_dr, err_hold in row["rows_dom_m_err_hold"]:
             cells[(dom, min(m, 3))].append((err_dr, err_hold))

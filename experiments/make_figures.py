@@ -37,8 +37,8 @@ ax.legend(h1+h2,l1+l2,frameon=False,fontsize=7,loc="upper left")
 fig.tight_layout();fig.savefig(f"{R}/fig_latency.pdf");fig.savefig(f"{R}/fig_latency.png")
 
 # Fig C: publication rate (8.33 Hz vs. 50 Hz; not reported in the paper)
-e2=json.load(open(f"{R}/e2_publication_rate.json"))
-on,off=e2[0],e2[1]
+pub=json.load(open(f"{R}/publication_rate.json"))
+on,off=pub[0],pub[1]
 fig,axs=plt.subplots(1,2,figsize=(3.45,1.9))
 axs[0].bar(["8.33 Hz","50 Hz"],[on["uplink_Bps"]/1024,off["uplink_Bps"]/1024],
            color=["#16243F","#C9A24A"],width=0.55)
@@ -52,14 +52,14 @@ for a in axs:
 fig.tight_layout();fig.savefig(f"{R}/fig_publication_rate.pdf");fig.savefig(f"{R}/fig_publication_rate.png")
 print("figures ok")
 
-# Fig D: E2 swarm-reaction latency CDF (e3_swarm.json)
+# Fig D: E2 swarm-reaction latency CDF (e2_swarm.json)
 _R = R
-if os.path.exists(f"{_R}/e3_swarm.json"):
-    e3=json.load(open(f"{_R}/e3_swarm.json"))
+if os.path.exists(f"{_R}/e2_swarm.json"):
+    e2=json.load(open(f"{_R}/e2_swarm.json"))
     fig,ax=plt.subplots(figsize=(3.45,2.1))
     styles=[("-","#16243F"),("--","#C9A24A"),(":","#8a1f1f")]
     import numpy as np
-    for r,(ls,c) in zip(e3,styles):
+    for r,(ls,c) in zip(e2,styles):
         v=np.sort(np.array(r["raw_swarm_lat_ms"]))
         y=np.arange(1,len(v)+1)/len(v)
         ax.plot(v,y,ls,color=c,lw=1.3,label=f"N={r['n_agents']} ({r['swarm_lat_ms']['n']} events)")

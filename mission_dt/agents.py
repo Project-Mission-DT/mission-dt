@@ -59,7 +59,7 @@ class VirtualAgent(threading.Thread):
         self.cli.loop_start()
 
     # state of the emulated vehicle and metrics, independent of the transport
-    # (E5 reuses it with a ROS 2 transport, experiments/run_e6.py).
+    # (E5 reuses it with a ROS 2 transport, experiments/run_e5.py).
     # publish_every: 6 (8.33 Hz) or 1 (50 Hz); True and False stand for 6 and 1.
     def _init_state(self, agent_id, domain, publish_every, duration_s, jitter, loss):
         self.aid, self.domain = agent_id, domain

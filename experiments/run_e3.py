@@ -1,26 +1,24 @@
 """
-E2 of the paper -- Swarm-reaction latency.
+E3 of the paper -- Twin fidelity under packet loss.
 
-Scenario: N agents start on a circle (radius R_M) and receive antipodal
-goals, forcing everyone through the center and creating repeated
-separation conflicts. The mission core runs with swarm=True: the
-collective features phi (inter-agent distances) trigger a separation rule
-that replaces lambda for conflicting neighbors.
+Question: how faithful is the twin's state estimate, and how does it
+degrade when the network drops telemetry?
 
-Measured, per corrective actuation delivered to a neighbor:
-    propagation latency = t_apply(neighbor) - t_pub(triggering telemetry)
-i.e., the full path: maneuvering agent publishes telemetry -> mission
-core frame (f_d + Phi + separation) -> corrective actuation received
-by the neighbor. Upper bound by design: ~2 frames (250 ms) + delivery.
+Method: virtual agents log their ground-truth pose at 50 Hz; a logging
+subclass of the mission core records the twin's estimate (and the
+stale flag) at every frame. Each agent drops each telemetry message it
+would publish with i.i.d. probability p in {0, 5%, 10%}, before the MQTT
+publication. For every core sample we interpolate the ground truth
+at the same instant and compute position error (metres) and heading
+error (degrees, wrapped). Reported: RMSE, p99, worst error observed
+during stale (dead-reckoned) frames.
 
-Also reports Gamma frame cost with the O(N^2) phi computation on, to
-show the twin still meets the 125 ms deadline with the separation rule active.
-
-    python experiments/run_e3.py [--publish-all] [N ...]   # default N: 10 25 50
+    python experiments/run_e3.py [--publish-all] [loss ...]   # default: 0 0.05 0.10
 Agents publish at 8.33 Hz (one of every six 50 Hz samples) and the script
-writes e3_swarm.json; with --publish-all they publish every 50 Hz sample and
-the script writes e3_swarm_50hz.json.
+writes e3_fidelity.json; with --publish-all they publish every 50 Hz sample
+and the script writes e3_fidelity_50hz.json.
 """
+import bisect
 import json
 import math
 import os
@@ -29,13 +27,41 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 from mission_dt.core import MissionDT
 from mission_dt.agents import (VirtualAgent, BASE_LAT, BASE_LON, RESULT_RATE_FIELD,
-                               publish_all_requested)
+                               PUBLISH_ALL_FLAGS, publish_all_requested)
 
-RES = os.environ.get("MDT_RESULTS") or str(Path(__file__).resolve().parent.parent / "results")
+RES = os.environ.get("MDT_RESULTS") or str(ROOT / "results")
 os.makedirs(RES, exist_ok=True)
+
+
+class LoggingDT(MissionDT):
+    """Logs the state estimate of the mission twin once per frame (formal core hook).
+    Also logs the stale streak m and the last received state (hold estimate)."""
+    def __init__(self, *a, **k):
+        super().__init__(*a, on_frame=self._log, **k)
+        self.state_log = []   # (t, aid, lat, lon, yaw, stale, m, hold_lat, hold_lon)
+        self._streak, self._hold = {}, {}
+
+    def _log(self, M):
+        now = time.time()
+        for aid, B in M.B.items():
+            if not B.seeded:
+                continue
+            if B.stale:
+                self._streak[aid] = self._streak.get(aid, 0) + 1
+            else:
+                self._streak[aid] = 0
+                self._hold[aid] = (B.p[0], B.p[1])
+            h = self._hold.get(aid, (B.p[0], B.p[1]))
+            self.state_log.append((now, aid, B.p[0], B.p[1], B.yaw, B.stale,
+                                   self._streak[aid], h[0], h[1]))
+
+
+def wrap_deg(a):
+    return (a + 180.0) % 360.0 - 180.0
 
 
 def pctl(v, p):
@@ -43,20 +69,17 @@ def pctl(v, p):
     return s[min(len(s) - 1, int(p / 100.0 * len(s)))] if s else None
 
 
-def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, decimate=True):
-    dt = MissionDT(swarm=True, sep_m=sep_m)
+def run_e3(loss, n_agents=10, duration=30.0, decimate=True):
+    dt = LoggingDT()
     agents, goals = [], {}
     for i in range(n_agents):
-        th = 2 * math.pi * i / n_agents
-        dlat = radius_m * math.cos(th) / 111_320.0
-        dlon = radius_m * math.sin(th) / (111_320.0 * math.cos(math.radians(BASE_LAT)))
         dom = "aerial" if i % 2 else "surface"
-        a = VirtualAgent(f"sw{i:03d}", domain=dom, duration_s=duration + 2,
+        a = VirtualAgent(f"fd{i:02d}", domain=dom,
+                         duration_s=duration + 2, loss=loss,
                          decimate=decimate)
-        a.lat, a.lon = BASE_LAT + dlat, BASE_LON + dlon
-        a.yaw = th + math.pi          # facing the center
         agents.append(a)
-        goals[a.aid] = (BASE_LAT - dlat, BASE_LON - dlon,   # antipode
+        goals[a.aid] = (BASE_LAT + 0.002 * (i % 7 - 3),
+                        BASE_LON + 0.002 * (i // 7 - 3),
                         15.0 if dom == "aerial" else 0.0)
     time.sleep(1.0)
     for a in agents:
@@ -64,51 +87,65 @@ def run_e3(n_agents, duration=40.0, radius_m=40.0, sep_m=12.0, decimate=True):
     dt.run(duration, goals=goals)
     for a in agents:
         a.join(timeout=5)
-    lat_sw = [x for a in agents for x in a.swarm_latencies]
+
+    truth = {a.aid: a.truth_log for a in agents}
+    times = {aid: [r[0] for r in log] for aid, log in truth.items()}
+    pos_err, hdg_err, stale_err, rows = [], [], [], []
+    dom = {a.aid: a.domain for a in agents}
+    for (t, aid, lat, lon, yaw, stale, m, hlat, hlon) in dt.state_log:
+        log, ts = truth[aid], times[aid]
+        i = bisect.bisect_left(ts, t)
+        if i == 0 or i >= len(ts):
+            continue
+        (t0, la0, lo0, y0), (t1, la1, lo1, y1) = log[i - 1], log[i]
+        f = (t - t0) / max(1e-9, t1 - t0)
+        tlat, tlon = la0 + f * (la1 - la0), lo0 + f * (lo1 - lo0)
+        tyaw = y0 + f * (wrap_deg(math.degrees(y1 - y0)) * math.pi / 180.0)
+        dy = (lat - tlat) * 111_320.0
+        dx = (lon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
+        pe = math.hypot(dx, dy)
+        he = abs(wrap_deg(math.degrees(yaw - tyaw)))
+        pos_err.append(pe)
+        hdg_err.append(he)
+        if stale:
+            stale_err.append(pe)
+        hy = (hlat - tlat) * 111_320.0
+        hx = (hlon - tlon) * 111_320.0 * math.cos(math.radians(tlat))
+        rows.append((dom[aid], m, pe, math.hypot(hx, hy)))
+    frames_agents = len(dt.state_log)
+    lost = sum(a.lost_msgs for a in agents)
+    sent = sum(a.msgs_out for a in agents)
     return {
-        "n_agents": n_agents, "duration_s": duration, "sep_m": sep_m,
-        RESULT_RATE_FIELD: decimate,
-        "frames": dt.frames, "overruns": dt.frame_overruns,
-        "avoid_events": dt.avoid_events,
-        "frame_ms": {"mean": st.mean(dt.frame_compute) * 1e3,
-                     "std": st.pstdev(dt.frame_compute) * 1e3,
-                     "p99": pctl(dt.frame_compute, 99) * 1e3,
-                     "max": max(dt.frame_compute) * 1e3},
-        "swarm_lat_ms": {"mean": st.mean(lat_sw) * 1e3,
-                         "std": st.pstdev(lat_sw) * 1e3,
-                         "p50": pctl(lat_sw, 50) * 1e3,
-                         "p95": pctl(lat_sw, 95) * 1e3,
-                         "p99": pctl(lat_sw, 99) * 1e3,
-                         "max": max(lat_sw) * 1e3, "n": len(lat_sw)},
-        "release_jitter_ms": {"mean": st.mean(dt.release_jitter) * 1e3,
-                              "std": st.pstdev(dt.release_jitter) * 1e3,
-                              "p99": pctl(dt.release_jitter, 99) * 1e3,
-                              "max": max(dt.release_jitter) * 1e3},
-        "core_cpu_pct": 100.0 * (dt.cpu_loop_s + dt.cpu_net_s) / duration,
-        "raw_swarm_lat_ms": [x * 1e3 for x in lat_sw],
-        "raw_release_jitter_ms": [x * 1e3 for x in dt.release_jitter],
-        "raw_frame_compute_ms": [x * 1e3 for x in dt.frame_compute],
+        "loss": loss, RESULT_RATE_FIELD: decimate,
+        "n_agents": n_agents, "duration_s": duration,
+        "samples": len(pos_err),
+        "lost_msgs": lost, "sent_msgs": sent,
+        "stale_pct": 100.0 * dt.stale_updates / max(1, frames_agents),
+        "pos_rmse_m": math.sqrt(st.mean(e * e for e in pos_err)),
+        "pos_p99_m": pctl(pos_err, 99),
+        "pos_max_stale_m": max(stale_err) if stale_err else 0.0,
+        "hdg_rmse_deg": math.sqrt(st.mean(e * e for e in hdg_err)),
+        "hdg_p99_deg": pctl(hdg_err, 99),
+        "rows_dom_m_err_hold": rows,
     }
 
 
 if __name__ == "__main__":
-    # --publish-all: agents publish every 50 Hz sample (E2 at 50 Hz),
-    # results in e3_swarm_50hz.json
-    dec = not publish_all_requested(sys.argv[1:])
-    sizes = [int(x) for x in sys.argv[1:] if not x.startswith("--")] or [10, 25, 50]
-    name = "e3_swarm.json" if dec else "e3_swarm_50hz.json"
-    fn = f"{RES}/{name}"
+    # python experiments/run_e3.py [--publish-all] [loss ...]
+    args = sys.argv[1:]
+    decimate = not publish_all_requested(args)
+    losses = [float(x) for x in args if x not in PUBLISH_ALL_FLAGS] or [0.0, 0.05, 0.10]
+    fn = f"{RES}/e3_fidelity.json" if decimate else f"{RES}/e3_fidelity_50hz.json"
     out = json.load(open(fn)) if os.path.exists(fn) else []
-    out = [r for r in out if r["n_agents"] not in sizes]
-    for n in sizes:
-        print(f"[E2] N={n} publication {'8.33' if dec else '50'} Hz ...", flush=True)
-        r = run_e3(n, decimate=dec)
+    out = [r for r in out if r["loss"] not in losses]
+    for L in losses:
+        print(f"[E3] loss={L:.0%} publication {'8.33' if decimate else '50'} Hz ...", flush=True)
+        r = run_e3(L, decimate=decimate)
         out.append(r)
-        json.dump(out, open(fn, "w"))
-        s = r["swarm_lat_ms"]
-        print(f"     events={s['n']} lat p50={s['p50']:.0f}ms p95={s['p95']:.0f}ms "
-              f"p99={s['p99']:.0f}ms max={s['max']:.0f}ms | "
-              f"frame_p99={r['frame_ms']['p99']:.2f}ms overruns={r['overruns']}",
+        json.dump(sorted(out, key=lambda x: x["loss"]), open(fn, "w"))
+        print(f"     pos RMSE={r['pos_rmse_m']:.2f} m  p99={r['pos_p99_m']:.2f} m"
+              f"  max(stale)={r['pos_max_stale_m']:.2f} m | "
+              f"hdg RMSE={r['hdg_rmse_deg']:.1f} deg | stale={r['stale_pct']:.1f}%",
               flush=True)
         time.sleep(2)
     print("done")

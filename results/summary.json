@@ -19,56 +19,56 @@
   "files_found": {
    "rep1": [
     "e1_scalability",
-    "e2_publication_rate",
-    "e3_swarm",
-    "e4_fidelity",
-    "e4_fidelity_50hz",
-    "e5_resources",
-    "e6_comparison",
-    "e7_hybrid"
+    "publication_rate",
+    "e2_swarm",
+    "e3_fidelity",
+    "e3_fidelity_50hz",
+    "e4_resources",
+    "e5_comparison",
+    "e6_hybrid"
    ],
    "rep2": [
     "e1_scalability",
-    "e2_publication_rate",
-    "e3_swarm",
-    "e4_fidelity",
-    "e4_fidelity_50hz",
-    "e5_resources",
-    "e6_comparison",
-    "e7_hybrid"
+    "publication_rate",
+    "e2_swarm",
+    "e3_fidelity",
+    "e3_fidelity_50hz",
+    "e4_resources",
+    "e5_comparison",
+    "e6_hybrid"
    ],
    "rep3": [
     "e1_scalability",
-    "e2_publication_rate",
-    "e3_swarm",
-    "e4_fidelity",
-    "e4_fidelity_50hz",
-    "e5_resources",
-    "e6_comparison",
-    "e7_hybrid"
+    "publication_rate",
+    "e2_swarm",
+    "e3_fidelity",
+    "e3_fidelity_50hz",
+    "e4_resources",
+    "e5_comparison",
+    "e6_hybrid"
    ],
    "rep4": [
     "e1_scalability",
-    "e2_publication_rate",
-    "e3_swarm",
-    "e4_fidelity",
-    "e4_fidelity_50hz",
-    "e5_resources",
-    "e6_comparison",
-    "e7_hybrid"
+    "publication_rate",
+    "e2_swarm",
+    "e3_fidelity",
+    "e3_fidelity_50hz",
+    "e4_resources",
+    "e5_comparison",
+    "e6_hybrid"
    ],
    "rep5": [
     "e1_scalability",
-    "e2_publication_rate",
-    "e3_swarm",
-    "e4_fidelity",
-    "e4_fidelity_50hz",
-    "e5_resources",
-    "e6_comparison",
-    "e7_hybrid"
+    "publication_rate",
+    "e2_swarm",
+    "e3_fidelity",
+    "e3_fidelity_50hz",
+    "e4_resources",
+    "e5_comparison",
+    "e6_hybrid"
    ]
   },
-  "generated": "2026-10-03T11:34:50-0300",
+  "generated": "2026-10-25T01:16:27-0300",
   "percentile_rule": "rank floor(pn/100)+1: sorted[min(n-1, int(p/100*n))]",
   "rep_std": "sample standard deviation over repetitions (None with 1 rep)",
   "pooled_std": "population standard deviation over pooled samples"
@@ -2150,7 +2150,7 @@
    }
   ]
  },
- "e2_publication_rate": {
+ "publication_rate": {
   "config_key": "decimate",
   "configs": [
    {
@@ -2699,7 +2699,7 @@
    }
   }
  },
- "e3_swarm": {
+ "e2_swarm": {
   "config_key": "n_agents",
   "configs": [
    {
@@ -3445,7 +3445,7 @@
    }
   ]
  },
- "e4_fidelity": {
+ "e3_fidelity": {
   "config_key": "loss",
   "configs": [
    {
@@ -3840,7 +3840,7 @@
    }
   ]
  },
- "e4_fidelity_50hz": {
+ "e3_fidelity_50hz": {
   "config_key": "loss",
   "configs": [
    {
@@ -4235,7 +4235,7 @@
    }
   ]
  },
- "e5_resources": {
+ "e4_resources": {
   "config_key": "n_agents",
   "configs": [
    {
@@ -4460,7 +4460,7 @@
    }
   ]
  },
- "e6_comparison": {
+ "e5_comparison": {
   "config_key": "stack,n_agents",
   "configs": [
    {
@@ -7657,7 +7657,7 @@
    }
   ]
  },
- "e7_hybrid": {
+ "e6_hybrid": {
   "config_key": "n_sitl",
   "configs": [
    {
